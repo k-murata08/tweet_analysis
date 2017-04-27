@@ -8,10 +8,11 @@ import twitter_generic_func as tg
 import const as C
 
 class Friend:
-    def __init__(self, id, name, count, bio):
+    def __init__(self, id, name, count, followers_count, bio):
         self.id = id
         self.name = name
         self.count = count
+        self.followers_count = followers_count
         self.bio = bio
 
 
@@ -28,7 +29,7 @@ def print_step_log(step_name, index, list_len):
     print step_name + " step:" + str(index+1) + "/" + str(list_len)
 
 
-def print_query_error(action_name, usr_id):
+def print_query_error(action_name, user_id):
     print "Exception(" + action_name + ") USER_ID:" + str(user_id)
 
 
@@ -79,9 +80,9 @@ def analysys_follower_friends():
 
 # フォロワーの中で2016年以前の登録ユーザをフォロー数の降順に並べて
 # 分析したアカウントをFriendインスタンスにしてリストで返す
-def test():
+def analysys_follower_friends_ex1():
     # 上限の5000人分取得
-    follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 5000)
+    follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 500)
 
     followers = []
 
@@ -106,7 +107,7 @@ def test():
     followers = sorted(followers, key=lambda obj: obj.friends_count, reverse=True)
 
     # とりあえず150人に絞る
-    followers = followers[0:150]
+    followers = followers[0:30]
 
     # フォロワーがフォローしている人
     friend_ids = []
@@ -127,16 +128,16 @@ def test():
     # フレンドのクラスの配列を作る
     # もっと良い書き方がありそう
     friends = []
-    step = 0
-    for key, value in sorted(friends_counter_dict.items(), key=lambda x: x[1], reverse=True):
+    step=0
+    for key, value in friends_counter_dict.items():
         step += 1
         print_step_log("CreateFriendList", step, len(friends_counter_dict))
 
         # とりあえず5人以上にフォローされているアカウントを取る
-        if value > 5:
+        if value > 4:
             try:
                 prof = tg.get_user_profile(key)
-                friend = Friend(id=key, name=prof['name'], count=value, bio=prof['description'])
+                friend = Friend(id=key, name=prof['name'], count=value, followers_count=prof['followers_count'], bio=prof['description'])
                 friends.append(friend)
             except:
                 print_query_error("get_user_profile", key)

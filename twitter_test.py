@@ -22,7 +22,7 @@ def run_analysys_base():
 
 
 def run_analysys_ex1():
-    friends = ta.test()
+    friends = ta.analysys_follower_friends_ex1()
 
     # ログだと見辛いのでとりあえず今はCSVに書き出す
     with open('follower_analytics.csv', 'w') as f:
@@ -32,7 +32,7 @@ def run_analysys_ex1():
 
         for friend in friends:
             print str(friend.id) + " " + friend.name
-            row = [str(friend.id), unicode(friend.name).encode("utf-8"), str(friend.count), unicode(friend.bio).encode("utf-8")]
+            row = [friend.id, unicode(friend.name).encode("utf-8"), friend.count, friend.followers_count, unicode(friend.bio).encode("utf-8")]
             writer.writerow(row)
 
 
