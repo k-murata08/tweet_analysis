@@ -26,7 +26,7 @@ class User:
 
 
 def print_step_log(step_name, index, list_len):
-    print step_name + " step:" + str(index+1) + "/" + str(list_len)
+    print step_name + " : " + str(index+1) + "/" + str(list_len)
 
 
 def print_query_error(action_name, user_id):
@@ -78,28 +78,45 @@ def analysys_follower_friends():
     return friends
 
 
-# フォロワーの中で2016年以前の登録ユーザをフォロー数の降順に並べて
-# 分析したアカウントをFriendインスタンスにしてリストで返す
-def analysys_follower_friends_ex1():
-    # 上限の5000人分取得
-    follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 500)
-
-    followers = []
-
-    # Userクラスとしてリストを作っておくと絞り込みが楽そうだった
-    for index, follower_id in enumerate(follower_ids):
-        print_step_log("CreateFollowersList", index, len(follower_ids))
+def create_users_from_ids(user_ids, stage_num):
+    users = []
+    for index, user_id in enumerate(user_ids):
+        print_step_log("CreateUsersList(stage"+str(stage_num)+")", index, len(user_ids))
         try:
-            prof = tg.get_user_profile(follower_id)
+            prof = tg.get_user_profile(user_id)
             user = User(id=prof['id'],
                         name=prof['name'],
                         description=prof['description'],
                         friends_count=prof['friends_count'],
                         created_at=dt.strptime(prof['created_at'], "%a %b %d %H:%M:%S +0000 %Y"))
-            followers.append(user)
-            sleep(1)
+            users.append(user)
         except:
-            print_query_error("get_user_profile", follower_id)
+            print_query_error("get_user_profile", user_id)
+        finally:
+            sleep(1)
+    return users
+
+
+def create_friend_ids_from_users(users, stage_num):
+    friend_ids = []
+    for index, user in enumerate(users):
+        print_step_log("CreateFriendIDs(stage"+str(stage_num)+")", index, len(users))
+        try:
+            ids = tg.get_friend_ids(user.id, 5000)
+            friend_ids.extend(ids)
+        except:
+            print_query_error("get_friend_ids", user.id)
+        finally:
+            sleep(60)
+    return friend_ids
+
+
+# フォロワーの中で2016年以前の登録ユーザをフォロー数の降順に並べて
+# 分析したアカウントをFriendインスタンスにしてリストで返す
+def analysys_follower_friends_ex1():
+    # 上限の5000人分取得
+    follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 100)
+    followers = create_users_from_ids(user_ids=follower_ids, stage_num=1)
 
 
     # 2016年以前のユーザで絞り込みしフォロー数の多い順で並べる
@@ -110,25 +127,15 @@ def analysys_follower_friends_ex1():
     followers = followers[0:30]
 
     # フォロワーがフォローしている人
-    friend_ids = []
-
-    # 1回クエリを飛ばすごとに1分休む
-    for index, follower in enumerate(followers):
-        print_step_log("CreateFriendIDs", index, len(followers))
-        try:
-            ids = tg.get_friend_ids(follower.id, 5000) # 5000件取得できるIDの方を使う
-            friend_ids.extend(ids)
-        except:
-            print_query_error("get_friend_ids", follower.id)
-        sleep(60)
+    friend_ids = create_friend_ids_from_users(users=followers, stage_num=2)
 
     # フレンドのIDをキーにして、フレンドがフォロワーにフォローされている人数を格納
     friends_counter_dict = collections.Counter(friend_ids)
 
     # フレンドのクラスの配列を作る
-    # もっと良い書き方がありそう
+    # FIXME:ここも関数にしたかったけど関数にしたらcountとidの挙動がおかしなことになったのでとりあえず直書き
     friends = []
-    step=0
+    step=0 # FIXME:辞書のループ用インデックス。、friends_counter_dict.keys().index(key)で取りたかったけど何故か無限ループするようになってしまったのでstepでやってる
     for key, value in friends_counter_dict.items():
         step += 1
         print_step_log("CreateFriendList", step, len(friends_counter_dict))

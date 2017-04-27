@@ -27,7 +27,7 @@ def run_analysys_ex1():
     # ログだと見辛いのでとりあえず今はCSVに書き出す
     with open('follower_analytics.csv', 'w') as f:
         writer = csv.writer(f, lineterminator='\n')
-        header = ["ID", "Name", "Count", "Bio"]
+        header = ["ID", "Name", "Count", "FollowersCount", "Bio"]
         writer.writerow(header)
 
         for friend in friends:
