@@ -17,12 +17,13 @@ class Friend:
 
 
 class User:
-    def __init__(self, id, name, description, friends_count, created_at):
+    def __init__(self, id, name, description, friends_count, created_at, is_protected):
         self.id = id
         self.name = name
         self.description = description
         self.friends_count = friends_count
         self.created_at = created_at
+        self.is_protected = is_protected
 
 
 def print_step_log(step_name, index, list_len):
@@ -88,7 +89,8 @@ def create_users_from_ids(user_ids, stage_num):
                         name=prof['name'],
                         description=prof['description'],
                         friends_count=prof['friends_count'],
-                        created_at=dt.strptime(prof['created_at'], "%a %b %d %H:%M:%S +0000 %Y"))
+                        created_at=dt.strptime(prof['created_at'], "%a %b %d %H:%M:%S +0000 %Y"),
+                        is_protected=prof['protected'])
             users.append(user)
         except:
             print_query_error("get_user_profile", user_id)
@@ -115,16 +117,20 @@ def create_friend_ids_from_users(users, stage_num):
 # 分析したアカウントをFriendインスタンスにしてリストで返す
 def analysys_follower_friends_ex1():
     # 上限の5000人分取得
-    follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 100)
+    follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 5000)
     followers = create_users_from_ids(user_ids=follower_ids, stage_num=1)
 
 
-    # 2016年以前のユーザで絞り込みしフォロー数の多い順で並べる
+    # 2016年以前のユーザで絞り込み,
+    # ツイートとかフォロイーを公開にしているユーザで絞り込み,
+    # フォロー数の多い順で並べる
     followers = filter(lambda obj:obj.created_at.year < 2016, followers)
+    followers = filter(lambda obj:obj.is_protected == False, followers)
     followers = sorted(followers, key=lambda obj: obj.friends_count, reverse=True)
+    print len(followers)
 
-    # とりあえず150人に絞る
-    followers = followers[0:30]
+    # とりあえず400人に絞る
+    followers = followers[0:400]
 
     # フォロワーがフォローしている人
     friend_ids = create_friend_ids_from_users(users=followers, stage_num=2)
@@ -138,10 +144,10 @@ def analysys_follower_friends_ex1():
     step=0 # FIXME:辞書のループ用インデックス。、friends_counter_dict.keys().index(key)で取りたかったけど何故か無限ループするようになってしまったのでstepでやってる
     for key, value in friends_counter_dict.items():
         step += 1
-        print_step_log("CreateFriendList", step, len(friends_counter_dict))
+        print_step_log("CreateFriendList(stage3)", step, len(friends_counter_dict))
 
-        # とりあえず5人以上にフォローされているアカウントを取る
-        if value > 4:
+        # とりあえず20人以上にフォローされているアカウントを取る
+        if value > 20:
             try:
                 prof = tg.get_user_profile(key)
                 friend = Friend(id=key, name=prof['name'], count=value, followers_count=prof['followers_count'], bio=prof['description'])

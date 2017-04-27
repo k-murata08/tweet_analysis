@@ -4,6 +4,8 @@
 import csv
 import twitter_analysis_func as ta
 import const
+import time
+from time import sleep
 
 
 def run_analysys_base():
@@ -38,7 +40,12 @@ def run_analysys_ex1():
 
 # 実行用
 def main():
+    start_time = time.time()
+
     run_analysys_ex1()
+
+    elapsed_time = time.time() - start_time
+    print ("elapsed_time:{0}".format(int(elapsed_time))) + "[sec]"
 
 
 if __name__ == "__main__":
