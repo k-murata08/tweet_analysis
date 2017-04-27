@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import gc
 from time import sleep
 from datetime import datetime as dt
 import collections
@@ -120,6 +121,7 @@ def analysys_follower_friends_ex1():
     follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 5000)
     followers = create_users_from_ids(user_ids=follower_ids, stage_num=1)
 
+    del follower_ids
 
     # 2016年以前のユーザで絞り込み,
     # ツイートとかフォロイーを公開にしているユーザで絞り込み,
@@ -127,7 +129,6 @@ def analysys_follower_friends_ex1():
     followers = filter(lambda obj:obj.created_at.year < 2016, followers)
     followers = filter(lambda obj:obj.is_protected == False, followers)
     followers = sorted(followers, key=lambda obj: obj.friends_count, reverse=True)
-    print len(followers)
 
     # とりあえず400人に絞る
     followers = followers[0:400]
@@ -135,8 +136,15 @@ def analysys_follower_friends_ex1():
     # フォロワーがフォローしている人
     friend_ids = create_friend_ids_from_users(users=followers, stage_num=2)
 
+    # 一応メモリ解放
+    del followers
+    gc.collect()
+
     # フレンドのIDをキーにして、フレンドがフォロワーにフォローされている人数を格納
     friends_counter_dict = collections.Counter(friend_ids)
+
+    del friend_ids
+    gc.collect()
 
     # フレンドのクラスの配列を作る
     # FIXME:ここも関数にしたかったけど関数にしたらcountとidの挙動がおかしなことになったのでとりあえず直書き
