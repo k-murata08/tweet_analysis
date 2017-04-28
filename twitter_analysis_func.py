@@ -7,7 +7,7 @@ from datetime import datetime as dt
 import collections
 import twitter_generic_func as tg
 import const as C
-from natto import MeCab
+import utils
 
 class Friend:
     def __init__(self, id, name, count, followers_count, bio):
@@ -28,33 +28,10 @@ class User:
         self.is_protected = is_protected
 
 
-def print_step_log(step_name, index, list_len):
-    print step_name + " : " + str(index+1) + "/" + str(list_len)
-
-
-def print_query_error(action_name, user_id):
-    print "Exception(" + action_name + ") USER_ID:" + str(user_id)
-
-
-# textを形態素に分けたリストを返す
-def get_keitaiso_list(text):
-    mc = MeCab('-F%m,%f[0]')
-    keitaiso_list = []
-
-    for word_row in mc.parse(text, as_nodes=True):
-        row_split = word_row.feature.split(',')
-        # MeCabでは必ず最後にEOSが含まれる
-        if (row_split[0] == 'EOS'):
-            break
-        keitaiso_list.append(row_split[0].strip())
-
-    return keitaiso_list
-
-
 def create_users_from_ids(user_ids, stage_num):
     users = []
     for index, user_id in enumerate(user_ids):
-        print_step_log("CreateUsersList(stage"+str(stage_num)+")", index, len(user_ids))
+        utils.print_step_log("CreateUsersList(stage"+str(stage_num)+")", index, len(user_ids))
         try:
             prof = tg.get_user_profile(user_id)
             user = User(id=prof['id'],
@@ -65,7 +42,7 @@ def create_users_from_ids(user_ids, stage_num):
                         is_protected=prof['protected'])
             users.append(user)
         except:
-            print_query_error("get_user_profile", user_id)
+            utils.print_query_error("get_user_profile", user_id)
         finally:
             sleep(1)
     return users
@@ -74,12 +51,12 @@ def create_users_from_ids(user_ids, stage_num):
 def create_friend_ids_from_users(users, stage_num):
     friend_ids = []
     for index, user in enumerate(users):
-        print_step_log("CreateFriendIDs(stage"+str(stage_num)+")", index, len(users))
+        utils.print_step_log("CreateFriendIDs(stage"+str(stage_num)+")", index, len(users))
         try:
             ids = tg.get_friend_ids(user.id, 5000)
             friend_ids.extend(ids)
         except:
-            print_query_error("get_friend_ids", user.id)
+            utils.print_query_error("get_friend_ids", user.id)
         finally:
             sleep(60)
     return friend_ids
@@ -122,32 +99,22 @@ def analysys_follower_friends_ex1(follower_count, min_followe_count):
     step=0 # FIXME:辞書のループ用インデックス。、friends_counter_dict.keys().index(key)で取りたかったけど何故か無限ループするようになってしまったのでstepでやってる
     for key, value in friends_counter_dict.items():
         step += 1
-        print_step_log("CreateFriendList(stage3)", step, len(friends_counter_dict))
+        utils.print_step_log("CreateFriendList(stage3)", step, len(friends_counter_dict))
 
         # とりあえず20人以上にフォローされているアカウントを取る
         if value > min_followe_count:
             try:
                 prof = tg.get_user_profile(key)
-                friend = Friend(id=key, name=prof['name'], count=value, followers_count=prof['followers_count'], bio=prof['description'])
+                friend = Friend(id=key,
+                                name=prof['name'],
+                                count=value,
+                                followers_count=prof['followers_count'],
+                                bio=prof['description'].replace('\n', '').replace('\r', ''))
                 friends.append(friend)
             except:
-                print_query_error("get_user_profile", key)
+                utils.print_query_error("get_user_profile", key)
             sleep(1)
 
     # フォローされている数の昇順に並び替え
     friends = sorted(friends, key=lambda u: u.count, reverse=True)
     return friends
-
-
-def test_get_tweets():
-    #follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 10)
-    timeline = tg.get_user_timeline(C.ANALYSYS_USER_ID, 30)
-    for tweet in timeline:
-        print get_keitaiso_list(tweet['text'].encode('utf-8'))[0]
-
-
-def test_get_lookup():
-    ids = [1349624660, 8619662]
-    profiles = tg.get_user_profiles(ids)
-    for profile in profiles:
-        print profile

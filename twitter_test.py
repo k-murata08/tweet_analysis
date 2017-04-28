@@ -7,7 +7,7 @@ import time
 
 
 def run_analysys_ex1():
-    friends = ta.analysys_follower_friends_ex1()
+    friends = ta.analysys_follower_friends_ex1(400, 20)
 
     # ログだと見辛いのでとりあえず今はCSVに書き出す
     with open('follower_analytics.csv', 'w') as f:
@@ -25,7 +25,7 @@ def run_analysys_ex1():
 def main():
     start_time = time.time()
 
-    ta.test_get_lookup()
+    run_analysys_ex1()
 
     elapsed_time = time.time() - start_time
     print ("elapsed_time:{0}".format(int(elapsed_time))) + "[sec]"
