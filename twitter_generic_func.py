@@ -74,7 +74,8 @@ def get_friend_ids(user_id, users_count):
 def get_user_profile(user_id):
     url = "https://api.twitter.com/1.1/users/show.json?"
     params = {
-        "user_id": user_id
+        "user_id": user_id,
+        "include_entities": False
         }
     oath = create_oath_session(C.OATH_KEY_DICT)
     responce = oath.get(url, params = params)
@@ -89,7 +90,8 @@ def get_user_profile(user_id):
 def get_user_profiles(user_ids):
     url = "https://api.twitter.com/1.1/users/lookup.json?"
     params = {
-        "user_id": user_ids
+        "user_id": user_ids,
+        "include_entities": False
         }
     oath = create_oath_session(C.OATH_KEY_DICT)
     responce = oath.get(url, params = params)
