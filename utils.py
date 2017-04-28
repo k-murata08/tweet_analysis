@@ -16,9 +16,12 @@ def split_list(list, n):
     return [list[x:x+n] for x in range(0, len(list), n)]
 
 
-# textを[形態素リスト, 品詞リスト]に分けたリストを返す。例：形態素リスト[1]の品詞は品詞リスト[1]
-# textはunicode型ではなく必ずstr型にして渡さないと動かない
+# textを形態素解析して返す
 def get_keitaiso_list(text):
+    """
+    @param text type->string
+    @return [[形態素1, 形態素2, ..., 形態素n], [品詞1, 品詞2, ..., 品詞n]]
+    """
     mc = MeCab('-F%m,%f[0]')
     keitaiso_list = []
     hinshi_list = []

@@ -4,7 +4,6 @@
 import csv
 import twitter_analysis_func as ta
 import time
-import const as C
 
 
 def run_analysys():
