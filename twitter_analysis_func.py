@@ -167,3 +167,10 @@ def analysys_follower_friends_ex1():
     # フォローされている数の昇順に並び替え
     friends = sorted(friends, key=lambda u: u.count, reverse=True)
     return friends
+
+
+def test_get_tweets():
+    follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 10)
+    timeline = tg.get_user_timeline(follower_ids[5], 30)
+    for tweet in timeline:
+        print tweet['text']
