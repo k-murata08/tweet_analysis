@@ -72,12 +72,35 @@ def create_friend_ids_from_users(users, stage_num):
     return friend_ids
 
 
+# 時間が100分の1になったやつ(プロフィールのクエリだけまとめてIDを飛ばせることに気づいた)
+def improved_create_users_from_ids(user_ids, stage_num):
+    users = []
+    user_ids_list = utils.split_list(user_ids, 100)
+    for index, ids in enumerate(user_ids_list):
+        utils.print_step_log("CreateUsersList(stage"+str(stage_num)+")", index, len(user_ids_list))
+        try:
+            profs = tg.get_user_profiles(ids)
+            for prof in profs:
+                user = User(id=prof['id'],
+                            name=prof['name'],
+                            description=prof['description'],
+                            friends_count=prof['friends_count'],
+                            created_at=dt.strptime(prof['created_at'], "%a %b %d %H:%M:%S +0000 %Y"),
+                            is_protected=prof['protected'])
+                users.append(user)
+        except:
+            utils.print_query_error("get_user_profiles", ids)
+        finally:
+            sleep(1)
+    return users
+
+
 # フォロワーの中で2016年以前の登録ユーザをフォロー数の降順に並べて
 # 分析したアカウントをFriendインスタンスにしてリストで返す
 def analysys_follower_friends_ex1():
     # 上限の5000人分取得
     follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 50)
-    followers = create_users_from_ids(user_ids=follower_ids, stage_num=1)
+    followers = improved_create_users_from_ids(user_ids=follower_ids, stage_num=1)
 
     # 2016年以前のユーザで絞り込み,
     # 非公開アカウントを弾き,
@@ -151,8 +174,8 @@ def analysys_follower_friends_ex1():
 
 # フォロワーのツイートを形態素解析して、単語の多い順のMorpheme(形態素)クラスで返す
 def analysys_follower_morpheme():
-    follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 20)
-    followers = create_users_from_ids(user_ids=follower_ids, stage_num=1)
+    follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 5000)
+    followers = improved_create_users_from_ids(user_ids=follower_ids, stage_num=1)
 
     # 2016年以前のユーザで絞り込み,
     # 非公開アカウントを弾き,
@@ -205,3 +228,10 @@ def analysys_follower_morpheme():
     # 単語出現回数の多い順に並べて返す
     morphemes = sorted(morphemes, key=lambda u: u.count, reverse=True)
     return morphemes
+
+
+def test():
+    follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 988)
+    users = improved_create_users_from_ids(follower_ids, 1)
+    for user in users:
+        print user.name
