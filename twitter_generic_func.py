@@ -112,7 +112,7 @@ def get_user_timeline(user_id, tweets_count):
         "user_id": user_id,
         "trim_user": True,
         "count": tweets_count,
-        "exclude_replies": False,
+        "exclude_replies": True,
         "include_rts": False
         }
     oath = create_oath_session(C.OATH_KEY_DICT)
