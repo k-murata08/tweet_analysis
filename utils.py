@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#from natto import MeCab
+#from natto import MeCab  形態素解析は今の所まだやらない
 
 def print_step_log(step_name, index, list_len):
     print step_name + " : " + str(index+1) + "/" + str(list_len)
@@ -11,6 +11,7 @@ def print_query_error(action_name, user_id):
     print "Exception(" + action_name + ") USER_ID:" + str(user_id)
 
 
+# listをn個ずつの要素を持ったリストに分割する(余は余りでリストになる)
 def split_list(list, n):
     return [list[x:x+n] for x in range(0, len(list), n)]
 

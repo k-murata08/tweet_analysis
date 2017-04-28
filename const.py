@@ -8,5 +8,14 @@ OATH_KEY_DICT = {
     "access_token_secret": "ifbZ4YwN2WIi6M8lpenyx2H9tWwWSFth3GMfU8K4AthTl"
 }
 
-# クエリを投げないといけないので手動で設定
+# 分析するユーザのID
 ANALYSYS_USER_ID = 740776275527237633
+
+# フォロワーのうち、上位何人について分析するか
+REQUIRE_FOLLOWER_COUNT = 20
+
+# CSVに書き出すのはCountが最低いくつ以上のユーザか
+MIN_COUNT_LIMIT = 3
+
+# 係数用定数
+FACTOR_CONST = 1000
