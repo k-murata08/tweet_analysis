@@ -86,6 +86,21 @@ def get_user_profile(user_id):
 
 
 # 15分間に900回回せる
+def get_user_profiles(user_ids):
+    url = "https://api.twitter.com/1.1/users/lookup.json?"
+    params = {
+        "user_id": user_ids
+        }
+    oath = create_oath_session(C.OATH_KEY_DICT)
+    responce = oath.get(url, params = params)
+    if responce.status_code != 200:
+        print "Error code: %d" %(responce.status_code)
+        return None
+    profiles = json.loads(responce.text, 'utf-8')
+    return profiles
+
+
+# 15分間に900回回せる
 def get_user_timeline(user_id, tweets_count):
     url = "https://api.twitter.com/1.1/statuses/user_timeline.json?"
     params = {

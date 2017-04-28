@@ -87,12 +87,10 @@ def create_friend_ids_from_users(users, stage_num):
 
 # フォロワーの中で2016年以前の登録ユーザをフォロー数の降順に並べて
 # 分析したアカウントをFriendインスタンスにしてリストで返す
-def analysys_follower_friends_ex1():
+def analysys_follower_friends_ex1(follower_count, min_followe_count):
     # 上限の5000人分取得
     follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 5000)
     followers = create_users_from_ids(user_ids=follower_ids, stage_num=1)
-
-    del follower_ids
 
     # 2016年以前のユーザで絞り込み,
     # ツイートとかフォロイーを公開にしているユーザで絞り込み,
@@ -102,12 +100,13 @@ def analysys_follower_friends_ex1():
     followers = sorted(followers, key=lambda obj: obj.friends_count, reverse=True)
 
     # とりあえず400人に絞る
-    followers = followers[0:400]
+    followers = followers[0:follower_count]
 
     # フォロワーがフォローしている人
     friend_ids = create_friend_ids_from_users(users=followers, stage_num=2)
 
     # 一応メモリ解放
+    del follower_ids
     del followers
     gc.collect()
 
@@ -126,7 +125,7 @@ def analysys_follower_friends_ex1():
         print_step_log("CreateFriendList(stage3)", step, len(friends_counter_dict))
 
         # とりあえず20人以上にフォローされているアカウントを取る
-        if value > 20:
+        if value > min_followe_count:
             try:
                 prof = tg.get_user_profile(key)
                 friend = Friend(id=key, name=prof['name'], count=value, followers_count=prof['followers_count'], bio=prof['description'])
@@ -145,3 +144,10 @@ def test_get_tweets():
     timeline = tg.get_user_timeline(C.ANALYSYS_USER_ID, 30)
     for tweet in timeline:
         print get_keitaiso_list(tweet['text'].encode('utf-8'))[0]
+
+
+def test_get_lookup():
+    ids = [1349624660, 8619662]
+    profiles = tg.get_user_profiles(ids)
+    for profile in profiles:
+        print profile
