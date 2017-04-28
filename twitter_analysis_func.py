@@ -98,8 +98,18 @@ def improved_create_users_from_ids(user_ids, stage_num):
 # フォロワーの中で2016年以前の登録ユーザをフォロー数の降順に並べて
 # 分析したアカウントをFriendインスタンスにしてリストで返す
 def analysys_follower_friends_ex1():
-    # 上限の5000人分取得
-    follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 50)
+    follower_ids = []
+    cursor = -1
+
+    # 一回のフォロワーID取得上限が5000件なので、5000件以上あればループs
+    for i in range(10):
+        f_ids_cursor = tg.get_follower_ids(C.ANALYSYS_USER_ID, 5000, cursor)
+        follower_ids.extend(f_ids_cursor[0])
+        if f_ids_cursor[1] == 0: # 全てのfollower_idsを取得したらbreak
+            break
+        cursor = f_ids_cursor[1]
+        sleep(1)
+
     followers = improved_create_users_from_ids(user_ids=follower_ids, stage_num=1)
 
     # 2016年以前のユーザで絞り込み,
@@ -174,7 +184,17 @@ def analysys_follower_friends_ex1():
 
 # フォロワーのツイートを形態素解析して、単語の多い順のMorpheme(形態素)クラスで返す
 def analysys_follower_morpheme():
-    follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 5000)
+    follower_ids = []
+    cursor = -1
+
+    # 一回のフォロワーID取得上限が5000件なので、5000件以上あればループs
+    for i in range(10):
+        f_ids_cursor = tg.get_follower_ids(C.ANALYSYS_USER_ID, 5000, cursor)
+        follower_ids.extend(f_ids_cursor[0])
+        if f_ids_cursor[1] == 0: # 全てのfollower_idsを取得したらbreak
+            break
+        cursor = f_ids_cursor[1]
+
     followers = improved_create_users_from_ids(user_ids=follower_ids, stage_num=1)
 
     # 2016年以前のユーザで絞り込み,

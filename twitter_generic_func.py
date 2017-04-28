@@ -22,11 +22,14 @@ def get_followers(user_id, users_count):
 
 
 # 15分間に15回回せる
-def get_follower_ids(user_id, users_count):
+# フォロワーidsとページングに使うnext_cursorが返る。次のページがないときにはnext_cursorは0で返る。
+# 最初はcursorに-1を設定
+def get_follower_ids(user_id, users_count, cursor):
     url = "https://api.twitter.com/1.1/followers/ids.json?"
     params = {
         "user_id": user_id,
-        "count": users_count
+        "count": users_count,
+        "cursor": cursor
         }
     oath = create_oath_session(C.OATH_KEY_DICT)
     responce = oath.get(url, params = params)
@@ -34,7 +37,7 @@ def get_follower_ids(user_id, users_count):
         print "Error code: %d" %(responce.status_code)
         return None
     follower_ids = json.loads(responce.text, 'utf-8')
-    return follower_ids['ids']
+    return [follower_ids['ids'], follower_ids['next_cursor']]
 
 
 # 15分間に15回回せる
@@ -108,7 +111,9 @@ def get_user_timeline(user_id, tweets_count):
     params = {
         "user_id": user_id,
         "trim_user": True,
-        "count": tweets_count
+        "count": tweets_count,
+        "exclude_replies": False,
+        "include_rts": False
         }
     oath = create_oath_session(C.OATH_KEY_DICT)
     responce = oath.get(url, params = params)
