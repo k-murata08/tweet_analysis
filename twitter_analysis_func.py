@@ -32,8 +32,9 @@ class User:
 
 
 class Morpheme:
-    def __init__(self, word, count):
+    def __init__(self, word, hinshi, count):
         self.word = word
+        self.hinshi = hinshi
         self.count = count
 
 
@@ -162,8 +163,10 @@ def analysys_follower_morpheme():
 
     followers = followers[0:C.REQUIRE_FOLLOWER_COUNT_M]
 
-    # 全followersの指定した数のツイートを形態素解析して重複考えずに全部word_listにぶち込む
+    # 全followersの指定した数のツイートを形態素解析して重複考えずに全部word_listにぶち込む。対応する品詞もhinshi_listにぶち込む
     word_list = []
+    hinshi_list = []
+
     for index, follower in enumerate(followers):
         utils.print_step_log("CreateWordList(stage2)", index, len(followers))
         try:
@@ -172,20 +175,32 @@ def analysys_follower_morpheme():
 
             # followerのツイートを形態素解析してword_listに入れる
             for text in tweet_texts:
-                text = text.encode('utf-8')
-                text = text.replace('\n', '').replace('\r', '').strip()
-                word_list.extend(utils.get_keitaiso_list(text))
+                text = text.encode('utf-8').replace('\n', '').replace('\r', '').strip()
+                keitaiso_list = utils.get_keitaiso_list(text)
+                word_list.extend(keitaiso_list[0])
+                hinshi_list.extend(keitaiso_list[1])
+
         except:
             utils.print_query_error("get_user_timeline", follower.id)
+
         finally:
             sleep(1)
 
+    # 形態素と品詞を紐づけたまま単語数を数えたいので"形態素/品詞"の文字列で1単語とする
+    word_hinshi_list = []
+    for word, hinshi in zip(word_list, hinshi_list):
+        word_hinshi_list.append(word + "/" + hinshi)
+
+
     # 単語をキーにして、単語が何回登場したかを辞書に格納
-    word_counter_dict = collections.Counter(word_list)
+    word_counter_dict = collections.Counter(word_hinshi_list)
 
     morphemes = []
     for key, value in word_counter_dict.items():
-        morphemes.append(Morpheme(word=key, count=value))
+        # 形態素と品詞を分ける
+        # rsplitにすることで、もし"htt:///名詞"みたいな文字列があってもちゃんと分けられる
+        splited_key = key.rsplit("/", 1)
+        morphemes.append(Morpheme(word=splited_key[0], hinshi=splited_key[1], count=value))
 
     # 単語出現回数の多い順に並べて返す
     morphemes = sorted(morphemes, key=lambda u: u.count, reverse=True)

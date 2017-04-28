@@ -16,17 +16,21 @@ def split_list(list, n):
     return [list[x:x+n] for x in range(0, len(list), n)]
 
 
-# textを形態素に分けたリストを返す
+# textを[形態素リスト, 品詞リスト]に分けたリストを返す。例：形態素リスト[1]の品詞は品詞リスト[1]
 # textはunicode型ではなく必ずstr型にして渡さないと動かない
 def get_keitaiso_list(text):
     mc = MeCab('-F%m,%f[0]')
     keitaiso_list = []
+    hinshi_list = []
 
     for word_row in mc.parse(text, as_nodes=True):
         row_split = word_row.feature.split(',')
         # MeCabでは必ず最後にEOSが含まれる
         if (row_split[0] == 'EOS'):
             break
-        keitaiso_list.append(row_split[0].strip())
+        if row_split[0].isdigit():
+            row_split[0] = str(row_split[0])
+        keitaiso_list.append(row_split[0])
+        hinshi_list.append(row_split[1])
 
-    return keitaiso_list
+    return [keitaiso_list, hinshi_list]
