@@ -25,7 +25,7 @@ def run_analysys_ex1():
 def main():
     start_time = time.time()
 
-    ta.get_tweets()
+    ta.test_get_tweets()
 
     elapsed_time = time.time() - start_time
     print ("elapsed_time:{0}".format(int(elapsed_time))) + "[sec]"

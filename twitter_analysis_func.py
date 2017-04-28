@@ -7,6 +7,7 @@ from datetime import datetime as dt
 import collections
 import twitter_generic_func as tg
 import const as C
+from natto import MeCab
 
 class Friend:
     def __init__(self, id, name, count, followers_count, bio):
@@ -33,7 +34,22 @@ def print_step_log(step_name, index, list_len):
 
 def print_query_error(action_name, user_id):
     print "Exception(" + action_name + ") USER_ID:" + str(user_id)
-    
+
+
+# textを形態素に分けたリストを返す
+def get_keitaiso_list(text):
+    mc = MeCab('-F%m,%f[0]')
+    keitaiso_list = []
+
+    for word_row in mc.parse(text, as_nodes=True):
+        row_split = word_row.feature.split(',')
+        # MeCabでは必ず最後にEOSが含まれる
+        if (row_split[0] == 'EOS'):
+            break
+        keitaiso_list.append(row_split[0].strip())
+
+    return keitaiso_list
+
 
 def create_users_from_ids(user_ids, stage_num):
     users = []
@@ -125,7 +141,7 @@ def analysys_follower_friends_ex1():
 
 
 def test_get_tweets():
-    follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 10)
-    timeline = tg.get_user_timeline(follower_ids[5], 30)
+    #follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 10)
+    timeline = tg.get_user_timeline(C.ANALYSYS_USER_ID, 30)
     for tweet in timeline:
-        print tweet['text']
+        print get_keitaiso_list(tweet['text'].encode('utf-8'))[0]
