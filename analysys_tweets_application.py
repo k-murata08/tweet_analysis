@@ -17,9 +17,8 @@ def run_analysys():
         writer.writerow(header)
 
         for morpheme in morphemes:
-            print str(morpheme.word) + " " + morpheme.count
-            row = [unicode(morpheme.word).encode("utf-8"),
-                   morpheme.count]
+            print morpheme.word
+            row = [morpheme.word, morpheme.count]
             writer.writerow(row)
 
 
@@ -30,7 +29,7 @@ def main():
     run_analysys()
 
     elapsed_time = time.time() - start_time
-    print ("elapsed_time:{0}".format(int(elapsed_time))) + "[sec]"
+    print ("elapsed_time:{0}".format(int(elapsed_time))) + "[sec]\n"
 
 
 if __name__ == "__main__":

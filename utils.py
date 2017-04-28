@@ -17,6 +17,7 @@ def split_list(list, n):
 
 
 # textを形態素に分けたリストを返す
+# textはunicode型ではなく必ずstr型にして渡さないと動かない
 def get_keitaiso_list(text):
     mc = MeCab('-F%m,%f[0]')
     keitaiso_list = []

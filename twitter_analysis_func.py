@@ -126,7 +126,7 @@ def analysys_follower_friends_ex1():
                 prof = tg.get_user_profile(key)
 
                 # フォロー率、フォロー比、係数を計算
-                follow_rate = float(value) / float(me_as_friend_obj.count) * float(100)
+                follow_rate = float(value) / float(me_as_friend_obj.count)
                 follow_ratio = float(prof['followers_count']) / float(me_as_friend_obj.followers_count)
                 factor = follow_rate / follow_ratio * C.FACTOR_CONST
 
@@ -135,7 +135,7 @@ def analysys_follower_friends_ex1():
                                 count=value,
                                 followers_count=prof['followers_count'],
                                 bio=prof['description'].replace('\n', '').replace('\r', ''),
-                                follow_rate=round(follow_rate, 2),
+                                follow_rate=round(follow_rate*100, 2),
                                 follow_ratio=round(follow_ratio, 1),
                                 factor=round(factor, 1))
                 friends.append(friend)
@@ -144,13 +144,13 @@ def analysys_follower_friends_ex1():
             sleep(1)
 
     # フォローされている数の昇順に並び替え
-    friends = sorted(friends, key=lambda u: u.count, reverse=True)
+    friends = sorted(friends, key=lambda u: u.factor, reverse=True)
     return friends
 
 
 # フォロワーのツイートを形態素解析して、単語の多い順のMorpheme(形態素)クラスで返す
 def analysys_follower_morpheme():
-    follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 5000)
+    follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 20)
     followers = create_users_from_ids(user_ids=follower_ids, stage_num=1)
 
     # 2016年以前のユーザで絞り込み,
@@ -160,24 +160,32 @@ def analysys_follower_morpheme():
     followers = filter(lambda obj:obj.is_protected == False, followers)
     followers = sorted(followers, key=lambda obj: obj.friends_count, reverse=True)
 
-    followers = followers[0:C.REQUIRE_FOLLOWER_COUNT]
+    followers = followers[0:C.REQUIRE_FOLLOWER_COUNT_M]
 
+    # 全followersの指定した数のツイートを形態素解析して重複考えずに全部word_listにぶち込む
     word_list = []
-    for follower in followers:
-        follower_tweets = tg.get_user_timeline(user_id=follower.id, tweets_count=C.TWEETS_COUNT_PER_USER)
-        tweet_texts = [tweet['text'] for tweet in follower_tweets]
+    for index, follower in enumerate(followers):
+        utils.print_step_log("CreateWordList(stage2)", index, len(followers))
+        try:
+            follower_tweets = tg.get_user_timeline(user_id=follower.id, tweets_count=C.TWEETS_COUNT_PER_USER)
+            tweet_texts = [tweet['text'] for tweet in follower_tweets]
 
-        for text in tweet_texts:
-            word_list.extend(utils.get_keitaiso_list(text))
-
-        sleep(1)
+            # followerのツイートを形態素解析してword_listに入れる
+            for text in tweet_texts:
+                text = text.encode('utf-8')
+                text = text.replace('\n', '').replace('\r', '').strip()
+                word_list.extend(utils.get_keitaiso_list(text))
+        except:
+            utils.print_query_error("get_user_timeline", follower.id)
+        finally:
+            sleep(1)
 
     # 単語をキーにして、単語が何回登場したかを辞書に格納
-    words_counter_dict = collections.Counter(word_list)
+    word_counter_dict = collections.Counter(word_list)
 
     morphemes = []
     for key, value in word_counter_dict.items():
-        morphemes.add(Morpheme(word=key, count=value))
+        morphemes.append(Morpheme(word=key, count=value))
 
     # 単語出現回数の多い順に並べて返す
     morphemes = sorted(morphemes, key=lambda u: u.count, reverse=True)

@@ -17,7 +17,6 @@ def run_analysys():
         writer.writerow(header)
 
         for friend in friends:
-            print str(friend.id) + " " + friend.name
             row = [friend.id,
                    unicode(friend.name).encode("utf-8"),
                    friend.count,
@@ -36,7 +35,7 @@ def main():
     run_analysys()
 
     elapsed_time = time.time() - start_time
-    print ("elapsed_time:{0}".format(int(elapsed_time))) + "[sec]"
+    print ("elapsed_time:{0}".format(int(elapsed_time))) + "[sec]\n"
 
 
 if __name__ == "__main__":
