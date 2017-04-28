@@ -69,11 +69,11 @@ def create_friend_ids_from_users(users, stage_num):
 # 分析したアカウントをFriendインスタンスにしてリストで返す
 def analysys_follower_friends_ex1():
     # 上限の5000人分取得
-    follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 200)
+    follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 50)
     followers = create_users_from_ids(user_ids=follower_ids, stage_num=1)
 
     # 2016年以前のユーザで絞り込み,
-    # ツイートとかフォロイーを公開にしているユーザで絞り込み,
+    # 非公開アカウントを弾き,
     # フォロー数の多い順で並べる
     followers = filter(lambda obj:obj.created_at.year < 2016, followers)
     followers = filter(lambda obj:obj.is_protected == False, followers)
@@ -89,7 +89,7 @@ def analysys_follower_friends_ex1():
     del followers
     gc.collect()
 
-    # フレンドのIDをキーにして、フレンドがフォロワーにフォローされている人数を格納
+    # フォロイーのIDをキーにして、フォロイーが何人にフォローされているかを格納
     friends_counter_dict = collections.Counter(friend_ids)
 
     del friend_ids
@@ -101,20 +101,20 @@ def analysys_follower_friends_ex1():
                               count=friends_counter_dict[C.ANALYSYS_USER_ID],
                               followers_count=my_prof['followers_count'],
                               bio=my_prof['description'].replace('\n', '').replace('\r', ''),
-                              follow_rate=100,
-                              follow_ratio=1,
-                              factor=C.FACTOR_CONST)
+                              follow_rate=format(100, '.2f'),
+                              follow_ratio=format(1, '.1f'),
+                              factor=format(C.FACTOR_CONST, '.1f'))
     sleep(1)
 
     # フレンドのクラスの配列を作る
-    # FIXME:ここも関数にしたかったけど関数にしたらcountとidの挙動がおかしなことになったのでとりあえず直書き
+    # FIXME:ここも関数にしたかったが関数にしたらcountとidの挙動がおかしくなったので直書き
     friends = []
-    step=0 # FIXME:辞書のループ用インデックス。、friends_counter_dict.keys().index(key)で取りたかったけど何故か無限ループするようになってしまったのでstepでやってる
+    step=0 # FIXME:辞書のループ用インデックス。friends_counter_dict.keys().index(key)で取りたかったが何故か無限ループするようになってしまったのでstepでやってる
 
     for key, value in friends_counter_dict.items():
         step += 1
         utils.print_step_log("CreateFriendList(stage3)", step, len(friends_counter_dict))
-        # とりあえず20人以上にフォローされているアカウントを取る
+        # 何人以上のアカウントをとってくるか
         if value > C.MIN_COUNT_LIMIT:
             try:
                 prof = tg.get_user_profile(key)
@@ -129,10 +129,9 @@ def analysys_follower_friends_ex1():
                                 count=value,
                                 followers_count=prof['followers_count'],
                                 bio=prof['description'].replace('\n', '').replace('\r', ''),
-                                follow_rate=follow_rate,
-                                follow_ratio=follow_ratio,
-                                factor=factor)
-
+                                follow_rate=format(follow_rate*100,'.2f'),
+                                follow_ratio=format(follow_ratio, '.1f'),
+                                factor=format(factor, '.1f'))
                 friends.append(friend)
             except:
                 utils.print_query_error("get_user_profile", key)
