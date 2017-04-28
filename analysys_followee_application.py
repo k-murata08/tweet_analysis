@@ -7,13 +7,13 @@ import time
 import const as C
 
 
-def run_analysys_ex1():
+def run_analysys():
     friends = ta.analysys_follower_friends_ex1()
 
     # ログだと見辛いのでとりあえず今はCSVに書き出す
     with open('follower_analytics.csv', 'w') as f:
         writer = csv.writer(f, lineterminator='\n')
-        header = ["ID", "Name", "Count", "FollowersCount", "Bio", "FollowRate", "FollowRatio", "Factor"]
+        header = ["ID", "Name", "Count", "FollowersCount", "Bio", "FollowRate[%]", "FollowerRatio", "Factor"]
         writer.writerow(header)
 
         for friend in friends:
@@ -33,7 +33,7 @@ def run_analysys_ex1():
 def main():
     start_time = time.time()
 
-    run_analysys_ex1()
+    run_analysys()
 
     elapsed_time = time.time() - start_time
     print ("elapsed_time:{0}".format(int(elapsed_time))) + "[sec]"

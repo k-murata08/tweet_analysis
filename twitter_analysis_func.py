@@ -31,6 +31,12 @@ class User:
         self.is_protected = is_protected
 
 
+class Morpheme:
+    def __init__(self, word, count):
+        self.word = word
+        self.count = count
+
+
 def create_users_from_ids(user_ids, stage_num):
     users = []
     for index, user_id in enumerate(user_ids):
@@ -101,9 +107,9 @@ def analysys_follower_friends_ex1():
                               count=friends_counter_dict[C.ANALYSYS_USER_ID],
                               followers_count=my_prof['followers_count'],
                               bio=my_prof['description'].replace('\n', '').replace('\r', ''),
-                              follow_rate=format(100, '.2f'),
-                              follow_ratio=format(1, '.1f'),
-                              factor=format(C.FACTOR_CONST, '.1f'))
+                              follow_rate=100.00,
+                              follow_ratio=1.0,
+                              factor=C.FACTOR_CONST)
     sleep(1)
 
     # フレンドのクラスの配列を作る
@@ -120,7 +126,7 @@ def analysys_follower_friends_ex1():
                 prof = tg.get_user_profile(key)
 
                 # フォロー率、フォロー比、係数を計算
-                follow_rate = float(value) / float(me_as_friend_obj.count)
+                follow_rate = float(value) / float(me_as_friend_obj.count) * float(100)
                 follow_ratio = float(prof['followers_count']) / float(me_as_friend_obj.followers_count)
                 factor = follow_rate / follow_ratio * C.FACTOR_CONST
 
@@ -129,9 +135,9 @@ def analysys_follower_friends_ex1():
                                 count=value,
                                 followers_count=prof['followers_count'],
                                 bio=prof['description'].replace('\n', '').replace('\r', ''),
-                                follow_rate=format(follow_rate*100,'.2f'),
-                                follow_ratio=format(follow_ratio, '.1f'),
-                                factor=format(factor, '.1f'))
+                                follow_rate=round(follow_rate, 2),
+                                follow_ratio=round(follow_ratio, 1),
+                                factor=round(factor, 1))
                 friends.append(friend)
             except:
                 utils.print_query_error("get_user_profile", key)
@@ -140,3 +146,39 @@ def analysys_follower_friends_ex1():
     # フォローされている数の昇順に並び替え
     friends = sorted(friends, key=lambda u: u.count, reverse=True)
     return friends
+
+
+# フォロワーのツイートを形態素解析して、単語の多い順のMorpheme(形態素)クラスで返す
+def analysys_follower_morpheme():
+    follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 5000)
+    followers = create_users_from_ids(user_ids=follower_ids, stage_num=1)
+
+    # 2016年以前のユーザで絞り込み,
+    # 非公開アカウントを弾き,
+    # フォロー数の多い順で並べる
+    followers = filter(lambda obj:obj.created_at.year < 2016, followers)
+    followers = filter(lambda obj:obj.is_protected == False, followers)
+    followers = sorted(followers, key=lambda obj: obj.friends_count, reverse=True)
+
+    followers = followers[0:C.REQUIRE_FOLLOWER_COUNT]
+
+    word_list = []
+    for follower in followers:
+        follower_tweets = tg.get_user_timeline(user_id=follower.id, tweets_count=C.TWEETS_COUNT_PER_USER)
+        tweet_texts = [tweet['text'] for tweet in follower_tweets]
+
+        for text in tweet_texts:
+            word_list.extend(utils.get_keitaiso_list(text))
+
+        sleep(1)
+
+    # 単語をキーにして、単語が何回登場したかを辞書に格納
+    words_counter_dict = collections.Counter(word_list)
+
+    morphemes = []
+    for key, value in word_counter_dict.items():
+        morphemes.add(Morpheme(word=key, count=value))
+
+    # 単語出現回数の多い順に並べて返す
+    morphemes = sorted(morphemes, key=lambda u: u.count, reverse=True)
+    return morphemes
