@@ -3,6 +3,7 @@
 
 from natto import MeCab
 import csv
+import const as C
 
 def print_step_log(step_name, index, list_len):
     print step_name + " : " + str(index+1) + "/" + str(list_len)
@@ -54,6 +55,6 @@ def get_exclusive_word_list():
 
 
 def is_valid_word_class(word_class):
-    if word_class == "名詞" or word_class == "形容詞" or word_class == "動詞":
+    if word_class in C.VALID_WORD_CLASS:
         return True
     return False

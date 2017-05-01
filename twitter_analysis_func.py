@@ -121,7 +121,7 @@ def analysys_follower_friends_ex1():
     # 2016年以前のユーザで絞り込み,
     # 非公開アカウントを弾き,
     # フォロー数の多い順で並べる
-    followers = filter(lambda obj:obj.created_at.year < 2016, followers)
+    followers = filter(lambda obj:obj.created_at.year <= C.VALID_USER_MAX_CREATED_AT, followers)
     followers = filter(lambda obj:obj.is_protected == False, followers)
     followers = sorted(followers, key=lambda obj: obj.friends_count, reverse=True)
 
@@ -196,11 +196,11 @@ def analysys_follower_morpheme():
     # 2016年以前のユーザで絞り込み,
     # 非公開アカウントを弾き,
     # フォロー数の多い順で並べる
-    followers = filter(lambda obj:obj.created_at.year < 2016, followers)
+    followers = filter(lambda obj:obj.created_at.year <= C.VALID_USER_MAX_CREATED_AT , followers)
     followers = filter(lambda obj:obj.is_protected == False, followers)
     followers = sorted(followers, key=lambda obj: obj.friends_count, reverse=True)
 
-    followers = followers[0:C.REQUIRE_FOLLOWER_COUNT_M]
+    followers = followers[0:C.REQUIRE_FOLLOWER_COUNT]
 
     # 全followersの指定した数のツイートを形態素解析して重複考えずに全部word_listにぶち込む。対応する品詞もhinshi_listにぶち込む
     word_list = []
