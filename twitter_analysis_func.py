@@ -95,21 +95,27 @@ def improved_create_users_from_ids(user_ids, stage_num):
     return users
 
 
-# フォロワーの中で2016年以前の登録ユーザをフォロー数の降順に並べて
-# 分析したアカウントをFriendインスタンスにしてリストで返す
-def analysys_follower_friends_ex1():
+def get_follower_ids(user_id):
     follower_ids = []
     cursor = -1
 
     # 一回のフォロワーID取得上限が5000件なので、5000件以上あればループs
     for i in range(10):
-        f_ids_cursor = tg.get_follower_ids(C.ANALYSYS_USER_ID, 5000, cursor)
+        print "CreateFollowerIDs"
+        f_ids_cursor = tg.get_follower_ids(user_id, 5000, cursor)
         follower_ids.extend(f_ids_cursor[0])
         if f_ids_cursor[1] == 0: # 全てのfollower_idsを取得したらbreak
             break
         cursor = f_ids_cursor[1]
         sleep(1)
 
+    return follower_ids
+
+
+# フォロワーの中で2016年以前の登録ユーザをフォロー数の降順に並べて
+# 分析したアカウントをFriendインスタンスにしてリストで返す
+def analysys_follower_friends_ex1():
+    follower_ids = get_follower_ids(user_id=C.ANALYSYS_USER_ID)
     followers = improved_create_users_from_ids(user_ids=follower_ids, stage_num=1)
 
     # 2016年以前のユーザで絞り込み,
@@ -184,17 +190,7 @@ def analysys_follower_friends_ex1():
 
 # フォロワーのツイートを形態素解析して、単語の多い順のMorpheme(形態素)クラスで返す
 def analysys_follower_morpheme():
-    follower_ids = []
-    cursor = -1
-
-    # 一回のフォロワーID取得上限が5000件なので、5000件以上あればループs
-    for i in range(10):
-        f_ids_cursor = tg.get_follower_ids(C.ANALYSYS_USER_ID, 5000, cursor)
-        follower_ids.extend(f_ids_cursor[0])
-        if f_ids_cursor[1] == 0: # 全てのfollower_idsを取得したらbreak
-            break
-        cursor = f_ids_cursor[1]
-
+    follower_ids = get_follower_ids(C.ANALYSYS_USER_ID)
     followers = improved_create_users_from_ids(user_ids=follower_ids, stage_num=1)
 
     # 2016年以前のユーザで絞り込み,
@@ -220,6 +216,7 @@ def analysys_follower_morpheme():
             for text in tweet_texts:
                 text = text.encode('utf-8').replace('\n', '').replace('\r', '').strip()
                 keitaiso_list = utils.get_keitaiso_list(text)
+
                 word_list.extend(keitaiso_list[0])
                 hinshi_list.extend(keitaiso_list[1])
 
@@ -234,7 +231,6 @@ def analysys_follower_morpheme():
     for word, hinshi in zip(word_list, hinshi_list):
         word_hinshi_list.append(word + "/" + hinshi)
 
-
     # 単語をキーにして、単語が何回登場したかを辞書に格納
     word_counter_dict = collections.Counter(word_hinshi_list)
 
@@ -248,10 +244,3 @@ def analysys_follower_morpheme():
     # 単語出現回数の多い順に並べて返す
     morphemes = sorted(morphemes, key=lambda u: u.count, reverse=True)
     return morphemes
-
-
-def test():
-    follower_ids = tg.get_follower_ids(C.ANALYSYS_USER_ID, 988)
-    users = improved_create_users_from_ids(follower_ids, 1)
-    for user in users:
-        print user.name
