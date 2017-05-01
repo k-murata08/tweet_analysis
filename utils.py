@@ -35,16 +35,17 @@ def get_keitaiso_list(text):
         if (row_split[0] == 'EOS'):
             break
 
-        if row_split[0].isdigit:
+        # 数字、関係ない品詞、ゴミワードリストのものは除外
+        if row_split[0].isdigit() or not is_valid_word_class(row_split[1]) or (row_split[0] in exclusive_word_list):
             continue
 
-        if is_valid_word_class(row_split[1]) and (row_split[0] not in exclusive_word_list):
-            keitaiso_list.append(row_split[0])
-            hinshi_list.append(row_split[1])
+        keitaiso_list.append(row_split[0])
+        hinshi_list.append(row_split[1])
 
     return [keitaiso_list, hinshi_list]
 
 
+# ゴミワードリスト
 def get_exclusive_word_list():
     with open('exclusive_word.csv', 'r') as f:
         reader = csv.reader(f)
@@ -53,7 +54,7 @@ def get_exclusive_word_list():
 
     return word_list
 
-
+# 抽出する品詞に当てはまるか
 def is_valid_word_class(word_class):
     if word_class in C.VALID_WORD_CLASS:
         return True

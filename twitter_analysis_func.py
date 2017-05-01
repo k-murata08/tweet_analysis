@@ -32,7 +32,8 @@ class User:
 
 
 class Morpheme:
-    def __init__(self, word, hinshi, count):
+    def __init__(self, user_id, word, hinshi, count):
+        self.user_id = user_id
         self.word = word
         self.hinshi = hinshi
         self.count = count
@@ -141,6 +142,7 @@ def analysys_follower_friends_ex1():
     del friend_ids
     gc.collect()
 
+    # 自分をFriendオブジェクトに登録するのは係数計算の部分で情報が必要なため
     my_prof = tg.get_user_profile(C.ANALYSYS_USER_ID)
     me_as_friend_obj = Friend(id=C.ANALYSYS_USER_ID,
                               name=my_prof['name'],
@@ -205,6 +207,7 @@ def analysys_follower_morpheme():
     # 全followersの指定した数のツイートを形態素解析して重複考えずに全部word_listにぶち込む。対応する品詞もhinshi_listにぶち込む
     word_list = []
     hinshi_list = []
+    user_id_list = []
 
     for index, follower in enumerate(followers):
         utils.print_step_log("CreateWordList(stage2)", index, len(followers))
@@ -219,6 +222,7 @@ def analysys_follower_morpheme():
 
                 word_list.extend(keitaiso_list[0])
                 hinshi_list.extend(keitaiso_list[1])
+                user_id_list.extend([follower.id] * len(keitaiso_list[0]))
 
         except:
             utils.print_query_error("get_user_timeline", follower.id)
@@ -228,19 +232,24 @@ def analysys_follower_morpheme():
 
     # 形態素と品詞を紐づけたまま単語数を数えたいので"形態素/品詞"の文字列で1単語とする
     word_hinshi_list = []
-    for word, hinshi in zip(word_list, hinshi_list):
-        word_hinshi_list.append(word + "/" + hinshi)
+
+    # 一つの単語を”単語/品詞/ユーザID”の形にする
+    for word, hinshi, user_id in zip(word_list, hinshi_list, user_id_list):
+        word_hinshi_list.append(word + "/" + hinshi + "/" + str(user_id))
 
     # 単語をキーにして、単語が何回登場したかを辞書に格納
     word_counter_dict = collections.Counter(word_hinshi_list)
 
     morphemes = []
     for key, value in word_counter_dict.items():
-        # 形態素と品詞を分ける
-        # rsplitにすることで、もし"htt:///名詞"みたいな文字列があってもちゃんと分けられる
-        splited_key = key.rsplit("/", 1)
-        morphemes.append(Morpheme(word=splited_key[0], hinshi=splited_key[1], count=value))
+        if value < C.MIN_WORD_COUNT:
+            continue
 
-    # 単語出現回数の多い順に並べて返す
-    morphemes = sorted(morphemes, key=lambda u: u.count, reverse=True)
+        # 形態素と品詞とuser_idを分ける
+        # rsplitにすることで、もし"htt:///名詞"みたいな文字列があってもちゃんと分けられる
+        splited_key = key.rsplit("/", 2)
+        morphemes.append(Morpheme(user_id=splited_key[2], word=splited_key[0], hinshi=splited_key[1], count=value))
+
+    # ユーザ毎にまとめ、単語出現回数の多い順に並べて返す
+    morphemes = sorted(morphemes, key=lambda u: (u.user_id, u.count), reverse=True)
     return morphemes

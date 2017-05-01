@@ -12,11 +12,11 @@ def run_analysys():
     # ログだと見辛いのでとりあえず今はCSVに書き出す
     with open('follower_analytics_mopheme.csv', 'w') as f:
         writer = csv.writer(f, lineterminator='\n')
-        header = ["Word", "Class", "Count"]
+        header = ["UserID", "Word", "Class", "Count"]
         writer.writerow(header)
 
         for morpheme in morphemes:
-            row = [morpheme.word, morpheme.hinshi, morpheme.count]
+            row = [morpheme.user_id, morpheme.word, morpheme.hinshi, morpheme.count]
             writer.writerow(row)
 
 
