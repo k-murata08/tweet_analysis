@@ -5,6 +5,8 @@ import gc
 from time import sleep
 from datetime import datetime as dt
 import collections
+import traceback
+
 import twitter_generic_func as tg
 import const as C
 import utils
@@ -218,14 +220,14 @@ def analysys_follower_morpheme():
             # followerのツイートを形態素解析してword_listに入れる
             for text in tweet_texts:
                 text = text.encode('utf-8').replace('\n', '').replace('\r', '').strip()
-                keitaiso_list = utils.get_keitaiso_list(text)
+                keitaiso_list = utils.get_keitaiso_list_from_juman(text)
 
                 word_list.extend(keitaiso_list[0])
                 hinshi_list.extend(keitaiso_list[1])
                 user_id_list.extend([follower.id] * len(keitaiso_list[0]))
 
         except:
-            utils.print_query_error("get_user_timeline", follower.id)
+            traceback.print_exc()
 
         finally:
             sleep(1)
