@@ -127,9 +127,9 @@ def get_user_timeline(user_id, tweets_count):
 # クエリを飛ばす時にしか使わない
 def create_oath_session(oath_key_dict):
     oath = OAuth1Session(
-    oath_key_dict["consumer_key"],
-    oath_key_dict["consumer_secret"],
-    oath_key_dict["access_token"],
-    oath_key_dict["access_token_secret"]
+        oath_key_dict["consumer_key"],
+        oath_key_dict["consumer_secret"],
+        oath_key_dict["access_token"],
+        oath_key_dict["access_token_secret"]
     )
     return oath

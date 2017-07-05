@@ -1,13 +1,6 @@
 #!/bin/bash
 
 brew_cmd () {
-    if type "MeCab" > /dev/null 2>&1
-    then
-        echo "MeCab is already installed"
-    else
-        brew install mecab-ipadic
-    fi
-
     if type "boost" > /dev/null 2>&1
     then
         echo "boost is already installed"
