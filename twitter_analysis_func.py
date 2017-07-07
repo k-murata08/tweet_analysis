@@ -117,7 +117,7 @@ def get_follower_ids(user_id):
 
 # フォロワーの中で2016年以前の登録ユーザをフォロー数の降順に並べて
 # 分析したアカウントをFriendインスタンスにしてリストで返す
-def analysys_follower_friends_ex1():
+def analysys_follower_friends():
     follower_ids = get_follower_ids(user_id=C.ANALYSYS_USER_ID)
     followers = improved_create_users_from_ids(user_ids=follower_ids, stage_num=1)
 
