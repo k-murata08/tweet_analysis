@@ -1,4 +1,4 @@
-natto-py==0.8.0
 oauthlib==2.0.2
 pyknp==0.3
 requests-oauthlib==0.8.0
+matplotlib==2.0.2
