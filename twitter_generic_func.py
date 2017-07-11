@@ -125,6 +125,23 @@ def get_user_timeline(user_id, tweets_count):
     return timeline
 
 
+# 15分間に75回回せる(1回200件が上限)
+def get_favorite_tweets(user_id, count):
+    url = "https://api.twitter.com/1.1/favorites/list.json?"
+    params = {
+        "user_id": user_id,
+        "count": count,
+        "include_entities": False
+    }
+    oath = create_oath_session(C.OATH_KEY_DICT)
+    responce = oath.get(url, params = params)
+    if responce.status_code != 200:
+        print "Error code: %d" %(responce.status_code)
+        return None
+    favolites = json.loads(responce.text, 'utf-8')
+    return favolites
+
+
 # クエリを飛ばす時にしか使わない
 def create_oath_session(oath_key_dict):
     oath = OAuth1Session(
