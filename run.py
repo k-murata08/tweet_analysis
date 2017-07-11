@@ -10,7 +10,6 @@ from matplotlib.font_manager import FontProperties
 
 
 def run_analysys_followee():
-    fp = FontProperties(fname='/Users/murata.kazuma/Library/Fonts/ipag.ttf');
     friends = ta.analysys_follower_friends()
 
     # ログだと見辛いのでとりあえず今はCSVに書き出す
@@ -39,14 +38,15 @@ def run_analysys_followee():
                    friend.factor]
             writer.writerow(row)
 
+        fp = FontProperties(fname='/Users/murata.kazuma/Library/Fonts/ipag.ttf')
         fig = plt.figure()
-        fig.subplots_adjust(bottom=0.2)
         ax = fig.add_subplot(1, 1, 1)
         ax.bar(pltleft, pltheight)
         ax.set_xticks(pltleft)
         ax.set_xticklabels(pltlabels, rotation=45)
         for label in ax.get_xticklabels():
             label.set_fontproperties(fp)
+        fig.tight_layout()
         plt.savefig('followee_analitics.png')
 
 
