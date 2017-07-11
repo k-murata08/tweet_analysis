@@ -58,11 +58,12 @@ def get_friends(user_id, users_count):
 
 
 # 15分間に15回回せる
-def get_friend_ids(user_id, users_count):
+def get_friend_ids(user_id, users_count, cursor):
     url = "https://api.twitter.com/1.1/friends/ids.json?"
     params = {
         "user_id": user_id,
-        "count": users_count
+        "count": users_count,
+        "cursor": cursor
         }
     oath = create_oath_session(C.OATH_KEY_DICT)
     responce = oath.get(url, params = params)
@@ -70,7 +71,7 @@ def get_friend_ids(user_id, users_count):
         print "Error code: %d" %(responce.status_code)
         return None
     friend_ids = json.loads(responce.text, 'utf-8')
-    return friend_ids['ids']
+    return [friend_ids['ids'], friend_ids['next_cursor']]
 
 
 # 15分間に900回回せる

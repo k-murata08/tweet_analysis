@@ -61,20 +61,6 @@ def create_users_from_ids(user_ids, stage_num):
     return users
 
 
-def create_friend_ids_from_users(users, stage_num):
-    friend_ids = []
-    for index, user in enumerate(users):
-        utils.print_step_log("CreateFriendIDs(stage"+str(stage_num)+")", index, len(users))
-        try:
-            ids = tg.get_friend_ids(user.id, 5000)
-            friend_ids.extend(ids)
-        except:
-            utils.print_query_error("get_friend_ids", user.id)
-        finally:
-            sleep(60)
-    return friend_ids
-
-
 # 時間が100分の1になったやつ(プロフィールのクエリだけまとめてIDを飛ばせることに気づいた)
 def improved_create_users_from_ids(user_ids, stage_num):
     users = []
@@ -96,6 +82,32 @@ def improved_create_users_from_ids(user_ids, stage_num):
         finally:
             sleep(1)
     return users
+
+
+# usersたちのフォロイーのID(重複可)のリストを生成
+def create_friend_ids_from_users(users, stage_num):
+    friend_ids = []
+
+    for index, user in enumerate(users):
+        utils.print_step_log("CreateFriendIDs(stage"+str(stage_num)+")", index, len(users))
+        cursor = -1
+        # 一回のフォロイーID取得上限が5000件なので、5000件以上あればループ
+        for i in range(10):
+            try:
+                ids_cursor = tg.get_friend_ids(user.id, 5000, cursor)
+                friend_ids.extend(ids_cursor[0])
+                cursor = ids_cursor[1]
+                sleep(60)
+            except:
+                utils.print_query_error("get_friend_ids", user.id)
+                sleep(60)
+                break
+
+            if cursor == 0:
+                break
+            print "Friend count over 5000 creating..."
+
+    return friend_ids
 
 
 def get_follower_ids(user_id):
@@ -187,8 +199,8 @@ def analysys_follower_friends():
                 utils.print_query_error("get_user_profile", key)
             sleep(1)
 
-    # フォローされている数の昇順に並び替え
-    friends = sorted(friends, key=lambda u: u.factor, reverse=True)
+    # フォローされている数の降順に並び替え
+    friends = sorted(friends, key=lambda u: u.count, reverse=True)
     return friends
 
 
