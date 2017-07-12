@@ -32,7 +32,6 @@ def get_keitaiso_list_from_juman(text):
 
     # スペースがあるとエラー。先頭に#があると処理が動かなくなる(なんでだろう)
     text = text.replace(" ", "").replace("　", "").replace("#", "/")
-    print text
 
     result = jumanpp.analysis(unicode(text, 'utf-8')) # pyknp-Jumanではユニコード文字列しか処理されない
     try:

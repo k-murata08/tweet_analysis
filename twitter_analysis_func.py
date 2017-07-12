@@ -49,66 +49,79 @@ class Morpheme:
         self.count = count
 
 
-def create_users_from_ids(user_ids, stage_num):
+def create_users_from_ids(user_ids):
     users = []
     for index, user_id in enumerate(user_ids):
-        utils.print_step_log("CreateUsersList(stage"+str(stage_num)+")", index, len(user_ids))
+        utils.print_step_log("CreateUsersList", index, len(user_ids))
         try:
             prof = tg.get_user_profile(user_id)
-            user = User(id=prof['id'],
-                        name=prof['name'],
-                        description=prof['description'],
-                        friends_count=prof['friends_count'],
-                        created_at=dt.strptime(prof['created_at'], "%a %b %d %H:%M:%S +0000 %Y"),
-                        is_protected=prof['protected'])
-            users.append(user)
         except:
             traceback.print_exc()
-        finally:
             sleep(1)
+            continue
+
+        user = User(
+            id=prof['id'],
+            name=prof['name'],
+            description=prof['description'],
+            friends_count=prof['friends_count'],
+            created_at=dt.strptime(prof['created_at'], "%a %b %d %H:%M:%S +0000 %Y"),
+            is_protected=prof['protected']
+        )
+        users.append(user)
+        sleep(1)
+
     return users
 
 
-def get_favorites_from_users(users, stage_num):
+def get_favorites_from_users(users):
     favorite_tweet_ids = []
     for index, user in enumerate(users):
-        utils.print_step_log("CreateFavoritesList(stage"+str(stage_num)+")", index, len(users))
+        utils.print_step_log("CreateFavoritesList", index, len(users))
         try:
             favs = tg.get_favorite_tweets(user.id, 200)
-            for fav in favs:
-                favorite_tweet_ids.append(fav['id'])
         except:
             traceback.print_exc()
-        finally:
             sleep(12)
+            continue
+
+        for fav in favs:
+            favorite_tweet_ids.append(fav['id'])
+        sleep(12)
+
     return favorite_tweet_ids
 
 
 # 時間が100分の1になったやつ(プロフィールのクエリだけまとめてIDを飛ばせることに気づいた)
-def improved_create_users_from_ids(user_ids, stage_num):
+def improved_create_users_from_ids(user_ids):
     users = []
     user_ids_list = utils.split_list(user_ids, 100)
     for index, ids in enumerate(user_ids_list):
-        utils.print_step_log("CreateUsersList(stage"+str(stage_num)+")", index, len(user_ids_list))
+        utils.print_step_log("CreateUsersList", index, len(user_ids_list))
         try:
             profs = tg.get_user_profiles(ids)
-            for prof in profs:
-                user = User(id=prof['id'],
-                            name=prof['name'],
-                            description=prof['description'],
-                            friends_count=prof['friends_count'],
-                            created_at=dt.strptime(prof['created_at'], "%a %b %d %H:%M:%S +0000 %Y"),
-                            is_protected=prof['protected'])
-                users.append(user)
         except:
             traceback.print_exc()
-        finally:
             sleep(1)
+            continue
+
+        for prof in profs:
+            user = User(
+                id=prof['id'],
+                name=prof['name'],
+                description=prof['description'],
+                friends_count=prof['friends_count'],
+                created_at=dt.strptime(prof['created_at'], "%a %b %d %H:%M:%S +0000 %Y"),
+                is_protected=prof['protected']
+            )
+            users.append(user)
+        sleep(1)
+
     return users
 
 
 # usersたちのフォロイーのID(重複可)のリストを生成
-def create_friend_ids_from_users(users, stage_num):
+def create_friend_ids_from_users(users):
     friend_ids = []
 
     for index, user in enumerate(users):
@@ -118,17 +131,16 @@ def create_friend_ids_from_users(users, stage_num):
         for i in range(10):
             try:
                 ids_cursor = tg.get_friend_ids(user.id, 5000, cursor)
-                friend_ids.extend(ids_cursor[0])
-                cursor = ids_cursor[1]
-                sleep(60)
             except:
                 traceback.print_exc()
-                sleep(60)
                 break
 
+            friend_ids.extend(ids_cursor[0])
+            cursor = ids_cursor[1]
             if cursor == 0:
                 break
             print "Friend count over 5000 creating..."
+            sleep(60)
 
     return friend_ids
 
@@ -140,7 +152,12 @@ def get_follower_ids(user_id):
     # 一回のフォロワーID取得上限が5000件なので、5000件以上あればループs
     for i in range(10):
         print "CreateFollowerIDs"
-        f_ids_cursor = tg.get_follower_ids(user_id, 5000, cursor)
+        try:
+            f_ids_cursor = tg.get_follower_ids(user_id, 5000, cursor)
+        except:
+            traceback.print_exc()
+            break;
+
         follower_ids.extend(f_ids_cursor[0])
         if f_ids_cursor[1] == 0: # 全てのfollower_idsを取得したらbreak
             break
@@ -154,7 +171,7 @@ def get_follower_ids(user_id):
 # 分析したアカウントをFriendインスタンスにしてリストで返す
 def analysys_follower_friends():
     follower_ids = get_follower_ids(user_id=C.ANALYSYS_USER_ID)
-    followers = improved_create_users_from_ids(user_ids=follower_ids, stage_num=1)
+    followers = improved_create_users_from_ids(user_ids=follower_ids)
 
     # 2016年以前のユーザで絞り込み,
     # 非公開アカウントを弾き,
@@ -166,7 +183,7 @@ def analysys_follower_friends():
     followers = followers[0:C.REQUIRE_FOLLOWER_COUNT]
 
     # フォロワーがフォローしている人
-    friend_ids = create_friend_ids_from_users(users=followers, stage_num=2)
+    friend_ids = create_friend_ids_from_users(users=followers)
 
     # 一応メモリ解放
     del follower_ids
@@ -181,14 +198,16 @@ def analysys_follower_friends():
 
     # 自分をFriendオブジェクトに登録するのは係数計算の部分で情報が必要なため
     my_prof = tg.get_user_profile(C.ANALYSYS_USER_ID)
-    me_as_friend_obj = Friend(id=C.ANALYSYS_USER_ID,
-                              name=my_prof['name'],
-                              count=friends_counter_dict[C.ANALYSYS_USER_ID],
-                              followers_count=my_prof['followers_count'],
-                              bio=my_prof['description'].replace('\n', '').replace('\r', ''),
-                              follow_rate=100.00,
-                              follow_ratio=1.0,
-                              factor=C.FACTOR_CONST)
+    me_as_friend_obj = Friend(
+        id=C.ANALYSYS_USER_ID,
+        name=my_prof['name'],
+        count=friends_counter_dict[C.ANALYSYS_USER_ID],
+        followers_count=my_prof['followers_count'],
+        bio=my_prof['description'].replace('\n', '').replace('\r', ''),
+        follow_rate=100.00,
+        follow_ratio=1.0,
+        factor=C.FACTOR_CONST
+    )
     sleep(1)
 
     # フレンドのクラスの配列を作る
@@ -200,27 +219,33 @@ def analysys_follower_friends():
         step += 1
         utils.print_step_log("CreateFriendList", step, len(friends_counter_dict))
         # 何人以上のアカウントをとってくるか
-        if value > C.MIN_COUNT_LIMIT:
-            try:
-                prof = tg.get_user_profile(key)
+        if value < C.MIN_COUNT_LIMIT:
+            continue
 
-                # フォロー率、フォロー比、係数を計算
-                follow_rate = float(value) / float(me_as_friend_obj.count)
-                follow_ratio = float(prof['followers_count']) / float(me_as_friend_obj.followers_count)
-                factor = follow_rate / follow_ratio * C.FACTOR_CONST
-
-                friend = Friend(id=key,
-                                name=prof['name'],
-                                count=value,
-                                followers_count=prof['followers_count'],
-                                bio=prof['description'].replace('\n', '').replace('\r', ''),
-                                follow_rate=round(follow_rate*100, 2),
-                                follow_ratio=round(follow_ratio, 1),
-                                factor=round(factor, 1))
-                friends.append(friend)
-            except:
-                traceback.print_exc()
+        try:
+            prof = tg.get_user_profile(key)
+        except:
+            traceback.print_exc()
             sleep(1)
+            continue
+
+        # フォロー率、フォロー比、係数を計算
+        follow_rate = float(value) / float(me_as_friend_obj.count)
+        follow_ratio = float(prof['followers_count']) / float(me_as_friend_obj.followers_count)
+        factor = follow_rate / follow_ratio * C.FACTOR_CONST
+
+        friend = Friend(
+            id=key,
+            name=prof['name'],
+            count=value,
+            followers_count=prof['followers_count'],
+            bio=prof['description'].replace('\n', '').replace('\r', ''),
+            follow_rate=round(follow_rate*100, 2),
+            follow_ratio=round(follow_ratio, 1),
+            factor=round(factor, 1)
+        )
+        friends.append(friend)
+        sleep(1)
 
     # フォローされている数の降順に並び替え
     friends = sorted(friends, key=lambda u: u.count, reverse=True)
@@ -230,7 +255,7 @@ def analysys_follower_friends():
 # フォロワーのツイートを形態素解析して、単語の多い順のMorpheme(形態素)クラスで返す
 def analysys_follower_morpheme():
     follower_ids = get_follower_ids(C.ANALYSYS_USER_ID)
-    followers = improved_create_users_from_ids(user_ids=follower_ids, stage_num=1)
+    followers = improved_create_users_from_ids(user_ids=follower_ids)
 
     # 2016年以前のユーザで絞り込み,
     # 非公開アカウントを弾き,
@@ -250,22 +275,23 @@ def analysys_follower_morpheme():
         utils.print_step_log("CreateWordList", index, len(followers))
         try:
             follower_tweets = tg.get_user_timeline(user_id=follower.id, tweets_count=C.TWEETS_COUNT_PER_USER)
-            tweet_texts = [tweet['text'] for tweet in follower_tweets]
-
-            # followerのツイートを形態素解析してword_listに入れる
-            for text in tweet_texts:
-                text = text.encode('utf-8').replace('\n', '').replace('\r', '').strip()
-                keitaiso_list = utils.get_keitaiso_list_from_juman(text)
-
-                word_list.extend(keitaiso_list[0])
-                hinshi_list.extend(keitaiso_list[1])
-                user_id_list.extend([follower.id] * len(keitaiso_list[0]))
-
         except:
             traceback.print_exc()
-
-        finally:
             sleep(1)
+            continue
+
+        tweet_texts = [tweet['text'] for tweet in follower_tweets]
+
+        # followerのツイートを形態素解析してword_listに入れる
+        for text in tweet_texts:
+            text = text.encode('utf-8').replace('\n', '').replace('\r', '').strip()
+            keitaiso_list = utils.get_keitaiso_list_from_juman(text)
+
+            word_list.extend(keitaiso_list[0])
+            hinshi_list.extend(keitaiso_list[1])
+            user_id_list.extend([follower.id] * len(keitaiso_list[0]))
+
+        sleep(1)
 
     # 形態素と品詞を紐づけたまま単語数を数えたいので"形態素/品詞"の文字列で1単語とする
     word_hinshi_list = []
@@ -294,7 +320,7 @@ def analysys_follower_morpheme():
 
 def analysys_follower_favorite():
     follower_ids = get_follower_ids(user_id=C.ANALYSYS_USER_ID)
-    followers = improved_create_users_from_ids(user_ids=follower_ids, stage_num=1)
+    followers = improved_create_users_from_ids(user_ids=follower_ids)
 
     # 2016年以前のユーザで絞り込み,
     # 非公開アカウントを弾き,
@@ -304,7 +330,7 @@ def analysys_follower_favorite():
     followers = sorted(followers, key=lambda obj: obj.friends_count, reverse=False)
     followers = followers[0:C.REQUIRE_FOLLOWER_COUNT]
 
-    favorites = get_favorites_from_users(followers, stage_num=2)
+    favorites = get_favorites_from_users(followers)
 
     # ファボツイートのIDをキーにして、ファボツイートが何人にファボされているかを格納
     favorites_counter_dict = collections.Counter(favorites)
@@ -313,17 +339,20 @@ def analysys_follower_favorite():
     step=0
     for key, value in favorites_counter_dict.items():
         utils.print_step_log("GetFavosTweet", step, len(favorites_counter_dict))
-        step += 1;
+        step += 1
         if value < C.MIN_FAVORITE_COUNT_LIMIT:
             continue
+
         try:
             tweet = tg.get_tweet(key)
-            favorite = Favorite(tweet_id=key, count=value, text=tweet['text'], tweet_user_name=tweet['user']['name'])
-            favorites.append(favorite)
         except:
             traceback.print_exc()
-        finally:
             sleep(1)
+            continue
+
+        favorite = Favorite(tweet_id=key, count=value, text=tweet['text'], tweet_user_name=tweet['user']['name'])
+        favorites.append(favorite)
+        sleep(1)
 
     favorites = sorted(favorites, key=lambda u: u.count, reverse=True)
     return favorites
