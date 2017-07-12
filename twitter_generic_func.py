@@ -142,6 +142,24 @@ def get_favorite_tweets(user_id, count):
     return favolites
 
 
+# ツイートの詳細を取得
+# 15分間に900回回せる
+def get_tweet(tweet_id):
+    url = "https://api.twitter.com/1.1/statuses/show.json?"
+    params = {
+        "id": tweet_id,
+        "include_my_retweet": False,
+        "include_entities": False
+    }
+    oath = create_oath_session(C.OATH_KEY_DICT)
+    responce = oath.get(url, params = params)
+    if responce.status_code != 200:
+        print "Error code: %d" %(responce.status_code)
+        return None
+    tweet = json.loads(responce.text, 'utf-8')
+    return tweet
+
+
 # クエリを飛ばす時にしか使わない
 def create_oath_session(oath_key_dict):
     oath = OAuth1Session(

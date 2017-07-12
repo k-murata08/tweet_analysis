@@ -64,6 +64,24 @@ def run_analysys_morpheme():
             writer.writerow(row)
 
 
+def run_analysys_favorite():
+    favorites = ta.analysys_follower_favorite()
+
+    with open('follower_analytics_favorite.csv', 'w') as f:
+        writer = csv.writer(f, lineterminator='\n')
+        header = ["TweetID", "Count", "Text", "UserName"]
+        writer.writerow(header)
+
+        for favorite in favorites:
+            row = [
+                favorite.tweet_id,
+                favorite.count,
+                unicode(favorite.text).encode("utf-8"),
+                unicode(favorite.tweet_user_name).encode("utf-8")
+            ]
+            writer.writerow(row)
+
+
 # 実行用
 def main():
     start_time = time.time()
@@ -72,6 +90,8 @@ def main():
         run_analysys_followee()
     elif sys.argv[1] == "morpheme":
         run_analysys_morpheme()
+    elif sys.argv[1] == "favorite":
+        run_analysys_favorite()
     else:
         print "Invalid Argument."
         print "Collect is followee or morpheme."

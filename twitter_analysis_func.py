@@ -33,6 +33,14 @@ class User:
         self.is_protected = is_protected
 
 
+class Favorite:
+    def __init__(self, tweet_id, count, text, tweet_user_name):
+        self.tweet_id = tweet_id
+        self.count = count
+        self.text = text
+        self.tweet_user_name = tweet_user_name
+
+
 class Morpheme:
     def __init__(self, user_id, word, hinshi, count):
         self.user_id = user_id
@@ -55,10 +63,25 @@ def create_users_from_ids(user_ids, stage_num):
                         is_protected=prof['protected'])
             users.append(user)
         except:
-            utils.print_query_error("get_user_profile", user_id)
+            traceback.print_exc()
         finally:
             sleep(1)
     return users
+
+
+def get_favorites_from_users(users, stage_num):
+    favorite_tweet_ids = []
+    for index, user in enumerate(users):
+        utils.print_step_log("CreateFavoritesList(stage"+str(stage_num)+")", index, len(users))
+        try:
+            favs = tg.get_favorite_tweets(user.id, 200)
+            for fav in favs:
+                favorite_tweet_ids.append(fav['id'])
+        except:
+            traceback.print_exc()
+        finally:
+            sleep(12)
+    return favorite_tweet_ids
 
 
 # 時間が100分の1になったやつ(プロフィールのクエリだけまとめてIDを飛ばせることに気づいた)
@@ -78,7 +101,7 @@ def improved_create_users_from_ids(user_ids, stage_num):
                             is_protected=prof['protected'])
                 users.append(user)
         except:
-            utils.print_query_error("get_user_profiles", ids)
+            traceback.print_exc()
         finally:
             sleep(1)
     return users
@@ -89,7 +112,7 @@ def create_friend_ids_from_users(users, stage_num):
     friend_ids = []
 
     for index, user in enumerate(users):
-        utils.print_step_log("CreateFriendIDs(stage"+str(stage_num)+")", index, len(users))
+        utils.print_step_log("CreateFriendID", index, len(users))
         cursor = -1
         # 一回のフォロイーID取得上限が5000件なので、5000件以上あればループ
         for i in range(10):
@@ -99,7 +122,7 @@ def create_friend_ids_from_users(users, stage_num):
                 cursor = ids_cursor[1]
                 sleep(60)
             except:
-                utils.print_query_error("get_friend_ids", user.id)
+                traceback.print_exc()
                 sleep(60)
                 break
 
@@ -175,7 +198,7 @@ def analysys_follower_friends():
 
     for key, value in friends_counter_dict.items():
         step += 1
-        utils.print_step_log("CreateFriendList(stage3)", step, len(friends_counter_dict))
+        utils.print_step_log("CreateFriendList", step, len(friends_counter_dict))
         # 何人以上のアカウントをとってくるか
         if value > C.MIN_COUNT_LIMIT:
             try:
@@ -196,7 +219,7 @@ def analysys_follower_friends():
                                 factor=round(factor, 1))
                 friends.append(friend)
             except:
-                utils.print_query_error("get_user_profile", key)
+                traceback.print_exc()
             sleep(1)
 
     # フォローされている数の降順に並び替え
@@ -224,7 +247,7 @@ def analysys_follower_morpheme():
     user_id_list = []
 
     for index, follower in enumerate(followers):
-        utils.print_step_log("CreateWordList(stage2)", index, len(followers))
+        utils.print_step_log("CreateWordList", index, len(followers))
         try:
             follower_tweets = tg.get_user_timeline(user_id=follower.id, tweets_count=C.TWEETS_COUNT_PER_USER)
             tweet_texts = [tweet['text'] for tweet in follower_tweets]
@@ -267,3 +290,40 @@ def analysys_follower_morpheme():
     # ユーザ毎にまとめ、単語出現回数の多い順に並べて返す
     morphemes = sorted(morphemes, key=lambda u: (u.user_id, u.count), reverse=True)
     return morphemes
+
+
+def analysys_follower_favorite():
+    follower_ids = get_follower_ids(user_id=C.ANALYSYS_USER_ID)
+    followers = improved_create_users_from_ids(user_ids=follower_ids, stage_num=1)
+
+    # 2016年以前のユーザで絞り込み,
+    # 非公開アカウントを弾き,
+    # フォロー数の多い順で並べる
+    followers = filter(lambda obj:obj.created_at.year <= C.VALID_USER_MAX_CREATED_AT , followers)
+    followers = filter(lambda obj:obj.is_protected == False, followers)
+    followers = sorted(followers, key=lambda obj: obj.friends_count, reverse=False)
+    followers = followers[0:C.REQUIRE_FOLLOWER_COUNT]
+
+    favorites = get_favorites_from_users(followers, stage_num=2)
+
+    # ファボツイートのIDをキーにして、ファボツイートが何人にファボされているかを格納
+    favorites_counter_dict = collections.Counter(favorites)
+
+    favorites = []
+    step=0
+    for key, value in favorites_counter_dict.items():
+        utils.print_step_log("GetFavosTweet", step, len(favorites_counter_dict))
+        step += 1;
+        if value < C.MIN_FAVORITE_COUNT_LIMIT:
+            continue
+        try:
+            tweet = tg.get_tweet(key)
+            favorite = Favorite(tweet_id=key, count=value, text=tweet['text'], tweet_user_name=tweet['user']['name'])
+            favorites.append(favorite)
+        except:
+            traceback.print_exc()
+        finally:
+            sleep(1)
+
+    favorites = sorted(favorites, key=lambda u: u.count, reverse=True)
+    return favorites
