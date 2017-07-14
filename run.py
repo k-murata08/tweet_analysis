@@ -23,7 +23,7 @@ def run_analysys_followee():
         pltlabels = []
 
         for i, friend in enumerate(friends):
-            if i < 10:
+            if i < 5:
                 pltleft.append(i)
                 pltheight.append(friend.count)
                 pltlabels.append(friend.name)
@@ -38,6 +38,7 @@ def run_analysys_followee():
                    friend.factor]
             writer.writerow(row)
 
+        # グラフ設定
         fp = FontProperties(fname='/Users/murata.kazuma/Library/Fonts/ipag.ttf')
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)

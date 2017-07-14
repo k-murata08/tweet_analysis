@@ -60,6 +60,10 @@ def create_users_from_ids(user_ids):
             sleep(1)
             continue
 
+        if prof == None or prof == []:
+            sleep(1)
+            continue
+
         user = User(
             id=prof['id'],
             name=prof['name'],
@@ -85,6 +89,10 @@ def get_favorites_from_users(users):
             sleep(12)
             continue
 
+        if favs == None or favs == []:
+            sleep(12)
+            continue
+
         for fav in favs:
             favorite_tweet_ids.append(fav['id'])
         sleep(12)
@@ -103,6 +111,9 @@ def improved_create_users_from_ids(user_ids):
         except:
             traceback.print_exc()
             sleep(1)
+            continue
+
+        if profs == None or profs == []:
             continue
 
         for prof in profs:
@@ -135,6 +146,9 @@ def create_friend_ids_from_users(users):
                 traceback.print_exc()
                 break
 
+            if ids_cursor == None or ids_cursor == []:
+                break
+
             friend_ids.extend(ids_cursor[0])
             cursor = ids_cursor[1]
             if cursor == 0:
@@ -156,7 +170,10 @@ def get_follower_ids(user_id):
             f_ids_cursor = tg.get_follower_ids(user_id, 5000, cursor)
         except:
             traceback.print_exc()
-            break;
+            break
+
+        if f_ids_cursor == None or f_ids_cursor == []:
+            break
 
         follower_ids.extend(f_ids_cursor[0])
         if f_ids_cursor[1] == 0: # 全てのfollower_idsを取得したらbreak
@@ -219,7 +236,7 @@ def analysys_follower_friends():
         step += 1
         utils.print_step_log("CreateFriendList", step, len(friends_counter_dict))
         # 何人以上のアカウントをとってくるか
-        if value < C.MIN_COUNT_LIMIT:
+        if value <= C.MIN_COUNT_LIMIT:
             continue
 
         try:
@@ -229,10 +246,25 @@ def analysys_follower_friends():
             sleep(1)
             continue
 
+        if prof == None or prof == []:
+            sleep(1)
+            continue
+
         # フォロー率、フォロー比、係数を計算
-        follow_rate = float(value) / float(me_as_friend_obj.count)
-        follow_ratio = float(prof['followers_count']) / float(me_as_friend_obj.followers_count)
-        factor = follow_rate / follow_ratio * C.FACTOR_CONST
+        if me_as_friend_obj.count != 0:
+            follow_rate = float(value) / float(me_as_friend_obj.count)
+        else:
+            follow_rate = 0
+
+        if me_as_friend_obj.followers_count != 0:
+            follow_ratio = float(prof['followers_count']) / float(me_as_friend_obj.followers_count)
+        else:
+            follow_ratio = 0
+
+        if follow_ratio != 0:
+            factor = follow_rate / follow_ratio * C.FACTOR_CONST
+        else:
+            factor = 0
 
         friend = Friend(
             id=key,
@@ -277,6 +309,10 @@ def analysys_follower_morpheme():
             follower_tweets = tg.get_user_timeline(user_id=follower.id, tweets_count=C.TWEETS_COUNT_PER_USER)
         except:
             traceback.print_exc()
+            sleep(1)
+            continue
+
+        if follower_tweets == None or follower_tweets == []:
             sleep(1)
             continue
 
@@ -347,6 +383,10 @@ def analysys_follower_favorite():
             tweet = tg.get_tweet(key)
         except:
             traceback.print_exc()
+            sleep(1)
+            continue
+
+        if tweet == None or tweet == []:
             sleep(1)
             continue
 
