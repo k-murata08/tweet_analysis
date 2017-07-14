@@ -107,14 +107,14 @@ def get_user_profiles(user_ids):
 
 
 # 15分間に900回回せる
-def get_user_timeline(user_id, tweets_count):
+def get_user_timeline(user_id, tweets_count, include_rts):
     url = "https://api.twitter.com/1.1/statuses/user_timeline.json?"
     params = {
         "user_id": user_id,
         "trim_user": True,
         "count": tweets_count,
         "exclude_replies": True,
-        "include_rts": False
+        "include_rts": include_rts
         }
     oath = create_oath_session(C.OATH_KEY_DICT)
     responce = oath.get(url, params = params)

@@ -95,7 +95,7 @@ def run_analysys_retweet():
             row = [
                 retweet.tweet_id,
                 retweet.count,
-                unicode(retweet,text).encode('utf-8')
+                unicode(retweet.text).encode('utf-8')
             ]
             writer.writerow(row)
 

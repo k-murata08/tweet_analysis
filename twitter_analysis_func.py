@@ -51,7 +51,7 @@ class Morpheme:
 
 class Tweet:
     def __init__(self, tweet_id, text, count):
-        self.id = tweet_id
+        self.tweet_id = tweet_id
         self.text = text
         self.count = count
 
@@ -313,7 +313,7 @@ def analysys_follower_morpheme():
     for index, follower in enumerate(followers):
         utils.print_step_log("CreateWordList", index, len(followers))
         try:
-            follower_tweets = tg.get_user_timeline(user_id=follower.id, tweets_count=C.TWEETS_COUNT_PER_USER)
+            follower_tweets = tg.get_user_timeline(user_id=follower.id, tweets_count=C.TWEETS_COUNT_PER_USER, include_rts=False)
         except:
             traceback.print_exc()
             sleep(1)
@@ -421,7 +421,7 @@ def analysys_follower_retweet():
     for index, follower in enumerate(followers):
         utils.print_step_log("CreateRetweetList", index, len(followers))
         try:
-            follower_tweets = tg.get_user_timeline(user_id=follower.id, tweets_count=C.TWEETS_COUNT_PER_USER)
+            follower_tweets = tg.get_user_timeline(user_id=follower.id, tweets_count=C.TWEETS_COUNT_PER_USER_RA, include_rts=True)
             follower_retweets = filter(lambda obj:obj.has_key("retweeted_status"), follower_tweets)
             retweet_tweets = [retweet["retweeted_status"] for retweet in follower_retweets]
         except:

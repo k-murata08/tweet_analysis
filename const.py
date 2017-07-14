@@ -9,10 +9,10 @@ OATH_KEY_DICT = {
 }
 
 # 分析するユーザのID
-ANALYSYS_USER_ID = 103219830
+ANALYSYS_USER_ID = 1349624660
 
 # --------- 共通 ------------------
-REQUIRE_FOLLOWER_COUNT = 20  # フォロワーのうち、上位何人について分析するか(フォロイーの多い順)
+REQUIRE_FOLLOWER_COUNT = 100  # フォロワーのうち、上位何人について分析するか(フォロイーの多い順)
 VALID_USER_MAX_CREATED_AT = 2016 # 何年までに登録されたユーザで絞り込むか
 # ----------------------------------
 
@@ -32,5 +32,6 @@ MIN_FAVORITE_COUNT_LIMIT = 2
 # ---------------------------------------
 
 # --------- 共通リツイート分析---------------
-MIN_RETWEET_COUNT_LIMIT = 1
+TWEETS_COUNT_PER_USER_RA = 200  # フォロワー1人あたり幾つの最新ツイートを取得するか
+MIN_RETWEET_COUNT_LIMIT = 3
 # -------------------------------------------
