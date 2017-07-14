@@ -83,6 +83,23 @@ def run_analysys_favorite():
             writer.writerow(row)
 
 
+def run_analysys_retweet():
+    retweets = ta.analysys_follower_retweet()
+
+    with open('follower_analytics_retweet.csv', 'w') as f:
+        writer = csv.writer(f, lineterminator='\n')
+        header = ["TweetID", "Count", "Text"]
+        writer.writerow(header)
+
+        for retweet in retweets:
+            row = [
+                retweet.tweet_id,
+                retweet.count,
+                unicode(retweet,text).encode('utf-8')
+            ]
+            writer.writerow(row)
+
+
 # 実行用
 def main():
     start_time = time.time()
@@ -93,6 +110,8 @@ def main():
         run_analysys_morpheme()
     elif sys.argv[1] == "favorite":
         run_analysys_favorite()
+    elif sys.argv[1] == "retweet":
+        run_analysys_retweet()
     else:
         print "Invalid Argument."
         print "Collect is followee or morpheme."

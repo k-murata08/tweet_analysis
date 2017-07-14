@@ -49,6 +49,13 @@ class Morpheme:
         self.count = count
 
 
+class Tweet:
+    def __init__(self, tweet_id, text, count):
+        self.id = tweet_id
+        self.text = text
+        self.count = count
+
+
 def create_users_from_ids(user_ids):
     users = []
     for index, user_id in enumerate(user_ids):
@@ -396,3 +403,64 @@ def analysys_follower_favorite():
 
     favorites = sorted(favorites, key=lambda u: u.count, reverse=True)
     return favorites
+
+
+def analysys_follower_retweet():
+    follower_ids = get_follower_ids(user_id=C.ANALYSYS_USER_ID)
+    followers = improved_create_users_from_ids(user_ids=follower_ids)
+
+    # 2016年以前のユーザで絞り込み,
+    # 非公開アカウントを弾き,
+    # フォロー数の多い順で並べる
+    followers = filter(lambda obj:obj.created_at.year <= C.VALID_USER_MAX_CREATED_AT , followers)
+    followers = filter(lambda obj:obj.is_protected == False, followers)
+    followers = sorted(followers, key=lambda obj: obj.friends_count, reverse=False)
+    followers = followers[0:C.REQUIRE_FOLLOWER_COUNT]
+
+    retweet_ids = []
+    for index, follower in enumerate(followers):
+        utils.print_step_log("CreateRetweetList", index, len(followers))
+        try:
+            follower_tweets = tg.get_user_timeline(user_id=follower.id, tweets_count=C.TWEETS_COUNT_PER_USER)
+            follower_retweets = filter(lambda obj:obj.has_key("retweeted_status"), follower_tweets)
+            retweet_tweets = [retweet["retweeted_status"] for retweet in follower_retweets]
+        except:
+            traceback.print_exc()
+            sleep(1)
+            continue
+
+        if retweet_tweets == None or retweet_tweets == []:
+            sleep(1)
+            continue
+
+        ids = [retweet['id'] for retweet in retweet_tweets]
+        retweet_ids.extend(ids)
+        sleep(1)
+
+    retweet_counter_dict = collections.Counter(retweet_ids)
+
+    retweets = []
+    step = 0
+    for key, value in retweet_counter_dict.items():
+        utils.print_step_log("GetTweet", step, len(retweet_counter_dict))
+        step += 1
+        if value < C.MIN_RETWEET_COUNT_LIMIT:
+            continue
+
+        try:
+            tweet = tg.get_tweet(key)
+        except:
+            traceback.print_exc()
+            sleep(1)
+            continue
+
+        if tweet == None or tweet == []:
+            sleep(1)
+            continue
+
+        tweet = Tweet(tweet_id=key, count=value, text=tweet['text'])
+        retweets.append(tweet)
+        sleep(1)
+
+    retweets  = sorted(retweets, key=lambda obj:obj.count, reverse=True)
+    return retweets
