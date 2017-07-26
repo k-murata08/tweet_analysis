@@ -1,3 +1,4 @@
 *.pyc
 *.csv
+*.class
 tweets.txt
