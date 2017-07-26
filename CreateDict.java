@@ -11,6 +11,7 @@ public class CreateDict {
 
 class WordDict {
     ArrayList<String> dict;
+    int wordMaxLength = 5;
 
     public WordDict() {
         this.dict = new ArrayList<String>();
@@ -22,7 +23,7 @@ class WordDict {
     */
     public ArrayList<String> wordList(String line) {
         ArrayList<String> words = new ArrayList<String>();
-        for (int wlen = 1; wlen <= 4; wlen++) {
+        for (int wlen = 1; wlen <= this.wordMaxLength; wlen++) {
             for (int i = 0; i < line.length() - wlen + 1; i++) {
                 String word = line.substring(i, i + wlen);
                 words.add(word);
