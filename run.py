@@ -100,6 +100,22 @@ def run_analysys_retweet():
             writer.writerow(row)
 
 
+def run_search_tweet(word):
+    tweets = ta.search_follower_tweets(word)
+
+    with open('follower_search_tweet.csv', 'w') as f:
+        writer = csv.writer(f, lineterminator='\n')
+        header = ["TweetID", "Text"]
+        writer.writerow(header)
+
+        for tweet in tweets:
+            row = [
+                tweet.tweet_id,
+                unicode(tweet.text).encode('utf-8')
+            ]
+            writer.writerow(row)
+
+
 # 実行用
 def main():
     start_time = time.time()
@@ -112,6 +128,11 @@ def main():
         run_analysys_favorite()
     elif sys.argv[1] == "retweet":
         run_analysys_retweet()
+    elif sys.argv[1] == "tweet":
+        if sys.argv[2] is None:
+            print "prease input word"
+        else:
+            run_search_tweet(sys.argv[2])
     else:
         print "Invalid Argument."
         print "Collect is followee or morpheme."

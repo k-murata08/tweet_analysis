@@ -151,14 +151,17 @@ def create_friend_ids_from_users(users):
                 ids_cursor = tg.get_friend_ids(user.id, 5000, cursor)
             except:
                 traceback.print_exc()
+                sleep(60)
                 break
 
             if ids_cursor == None or ids_cursor == []:
+                sleep(60)
                 break
 
             friend_ids.extend(ids_cursor[0])
             cursor = ids_cursor[1]
             if cursor == 0:
+                sleep(60)
                 break
             print "Friend count over 5000 creating..."
             sleep(60)
@@ -464,3 +467,36 @@ def analysys_follower_retweet():
 
     retweets  = sorted(retweets, key=lambda obj:obj.count, reverse=True)
     return retweets
+
+
+def search_follower_tweets(word):
+    follower_ids = get_follower_ids(user_id=C.ANALYSYS_USER_ID)
+    followers = improved_create_users_from_ids(user_ids=follower_ids)
+
+    # 2016年以前のユーザで絞り込み,
+    # 非公開アカウントを弾き,
+    # フォロー数の多い順で並べる
+    followers = filter(lambda obj:obj.created_at.year <= C.VALID_USER_MAX_CREATED_AT , followers)
+    followers = filter(lambda obj:obj.is_protected == False, followers)
+    followers = sorted(followers, key=lambda obj: obj.friends_count, reverse=False)
+    followers = followers[0:C.REQUIRE_FOLLOWER_COUNT]
+
+    follower_tweets = []
+    for index, follower in enumerate(followers):
+        utils.print_step_log("CreateTweetList", index, len(followers))
+        try:
+            tweets = tg.get_user_timeline(user_id=follower.id, tweets_count=C.TWEETS_COUNT_PER_USER_RA, include_rts=True)
+            tweets = filter(lambda obj:obj['text'].count(wosrd) > 0, follower_tweets)
+        except:
+            traceback.print_exc()
+            sleep(1)
+            continue
+
+        for tweet in tweets:
+            follower_tweets.append(
+                Tweet(tweet_id=tweet['id'], text=tweet['text'], count=1)
+            )
+
+        sleep(1)
+
+    return follower_tweets
