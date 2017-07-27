@@ -69,7 +69,24 @@ class WordDict {
         }
     }
 
-    public char convert(char c) {
+    /**
+    * 単語を正規化
+    * @param str 正規化したい単語
+    */
+    public String convertString(String str) {
+        StringBuilder sb = new StringBuilder(str);
+        for (int i = 0; i < sb.length(); i++) {
+            char c = this.convertChar(sb.charAt(i));
+            sb.setCharAt(i, c);
+        }
+        return sb.toString();
+    }
+
+    /**
+    * 文字を正規化
+    * @param c 正規化したい文字
+    */
+    public char convertChar(char c) {
         if (Character.isAlphabetic(c)) {
             return Character.toUpperCase(c);
         } else {
