@@ -3,9 +3,10 @@ import java.util.*;
 
 public class CreateDict {
     public static void main(String[] args) {
-        File file = new File("tweets.txt");
+        File readfile = new File("tweets.txt");
+        File writefile = new File("dictionary.csv");
         WordDict wordDict = new WordDict();
-        wordDict.makeDict(file);
+        wordDict.makeDict(readfile, writefile);
     }
 }
 
@@ -25,9 +26,10 @@ class WordDict {
         ArrayList<String> words = new ArrayList<String>();
         for (int wlen = 1; wlen <= this.wordMaxLength; wlen++) {
             for (int i = 0; i < line.length() - wlen + 1; i++) {
-                String word = line.substring(i, i + wlen);
-                words.add(word);
-                String s = this.convertString(word);
+                String word = line.substring(i, i + wlen).trim();
+                if (word.length() != 0) {
+                    words.add(word);
+                }
             }
         }
         return words;
@@ -43,18 +45,38 @@ class WordDict {
     * テキストファイルから辞書dictを作成
     * @param file 辞書を作成したいテキストファイル
     */
-    public void makeDict(File file) {
+    public void makeDict(File readfile, File writefile) {
         FileReader fr = null;
+        FileWriter fw = null;
         BufferedReader br = null;
+        PrintWriter pw = null;
         try {
-            fr = new FileReader(file);
+            fr = new FileReader(readfile);
+            fw = new FileWriter(writefile, false);
             br = new BufferedReader(fr);
+            pw = new PrintWriter(new BufferedWriter(fw));
+
+            // 辞書リスト作成
             String line;
             while ((line = br.readLine()) != null) {
                 ArrayList<String> wds = this.wordList(line);
+                for (int i = 0; i < wds.size(); i++) {
+                    String convertStr = this.convertString(wds.get(i));
+                    wds.set(i, convertStr);
+                }
                 this.dict.addAll(wds);
             }
             this.printDict();
+
+            // ファイル書き込み
+            pw.print("word"); // ヘッダs
+            pw.println();
+            for (int i = 0; i < this.dict.size(); i++) {
+                String word = this.dict.get(i);
+                pw.print(word);
+                pw.println();
+            }
+
         } catch(FileNotFoundException e) {
             System.out.println(e);
         } catch(IOException e) {
@@ -63,6 +85,8 @@ class WordDict {
             try {
                 br.close();
                 fr.close();
+                fw.close();
+                pw.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -84,6 +108,8 @@ class WordDict {
 
     /**
     * 文字を正規化
+    * カタカナは全角ひらがなに
+    * アルファベットは全角小文字に
     * @param c 正規化したい文字
     */
     public char convertChar(char c) {
@@ -101,6 +127,10 @@ class WordDict {
             return (char) (c - 'ａ' + 'a');
         } else if (c >= 'Ａ' && c <= 'Ｚ') {
             return Character.toLowerCase((char) (c - 'Ａ' + 'A'));
+        } else if (c == '！') {
+            return '!';
+        } else if (c == '？') {
+            return '?';
         } else {
             return c;
         }
