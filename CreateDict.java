@@ -69,7 +69,7 @@ class WordDict {
             this.printDict();
 
             // ファイル書き込み
-            pw.print("word"); // ヘッダs
+            pw.print("word"); // ヘッダ
             pw.println();
             for (int i = 0; i < this.dict.size(); i++) {
                 String word = this.dict.get(i);
