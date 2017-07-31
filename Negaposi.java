@@ -9,13 +9,27 @@ public class Negaposi {
     static void excute() {
         SentenceManager sentenceManager = new SentenceManager("tweets.txt");
         ArrayList<String> sentences = sentenceManager.loadSentences();
-        for (String s : sentences) {
-            System.out.println(s);
-        }
 
         EmotionDict emotionDict = new EmotionDict("emo_dict_jp.txt");
         HashMap<String, Double> dictMap = emotionDict.loadDict();
 
+        for (String sentence : sentences) {
+            ArrayList<String> words = sentenceManager.createWords(sentence);
+            double score = 0;
+            for (String word : words) {
+                if (word.length() == 1) {
+                    continue;
+                }
+                if (dictMap.containsKey(word)) {
+                    score += dictMap.get(word);
+                    System.out.println("sentence: " + sentence);
+                    System.out.println(word);
+                }
+            }
+            if (score != 0) {
+                System.out.println("score: " + String.valueOf(score));
+            }
+        }
     }
 }
 
