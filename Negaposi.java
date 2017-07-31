@@ -3,8 +3,19 @@ import java.util.*;
 
 public class Negaposi {
     public static void main(String args[]) {
-        SentenceManager sentenceManager = new SentenceManager();
-        sentenceManager.excute();
+        excute();
+    }
+
+    static void excute() {
+        SentenceManager sentenceManager = new SentenceManager("tweets.txt");
+        ArrayList<String> sentences = sentenceManager.loadSentences();
+        for (String s : sentences) {
+            System.out.println(s);
+        }
+
+        EmotionDict emotionDict = new EmotionDict("emo_dict_jp.txt");
+        HashMap<String, Double> dictMap = emotionDict.loadDict();
+
     }
 }
 
@@ -13,30 +24,30 @@ public class Negaposi {
  * ネガポジ判定したい文章をsentensesとして管理する
  **/
 class SentenceManager {
-    ArrayList<String> sentences;
-    ArrayList<String> words;
+    File file;
+    int wordMaxLength = 12;
 
-    SentenceManager() {
-        this.sentences = new ArrayList<String>();
-        this.words = new ArrayList<String>();
+    SentenceManager(String filename) {
+        this.file = new File(filename);
     }
 
-    void loadInput() {
-        Scanner sc = new Scanner(System.in);
-        System.out.println(sc.nextLine());
-    }
-
-    void loadSentences() {
+    /***
+     * テキストファイルから文を読み込む
+     * return ArrayList<String> sentences (文章リスト)
+     **/
+    ArrayList<String> loadSentences() {
+        ArrayList<String> sentences = new ArrayList<String>();
         FileReader fr = null;
         BufferedReader br = null;
         try {
-            File file = new File("tweets.txt");
-            fr = new FileReader(file);
+            fr = new FileReader(this.file);
             br = new BufferedReader(fr);
 
             String line;
             while ((line = br.readLine()) != null) {
-                this.sentences.add(line);
+                if (!line.trim().equals("")) {
+                    sentences.add(line);
+                }
             }
         } catch(FileNotFoundException e) {
             System.out.println(e);
@@ -50,17 +61,24 @@ class SentenceManager {
                 e.printStackTrace();
             }
         }
+        return sentences;
     }
 
-    void createWords() {
-        for (String s : this.sentences) {
-            System.out.println(s);
+    /***
+     * 文章から、単語配列を作成
+     * return ArrayList<String> words (単語リスト)
+     **/
+    ArrayList<String> createWords(String sentence) {
+        ArrayList<String> words = new ArrayList<String>();
+        for (int wlen = 1; wlen <= this.wordMaxLength; wlen++) {
+            for (int i = 0; i < sentence.length() - wlen + 1; i++) {
+                String word = sentence.substring(i, i + wlen).trim();
+                if (word.length() != 0) {
+                    words.add(word);
+                }
+            }
         }
-    }
-
-    void excute() {
-        this.loadSentences();
-        this.createWords();
+        return words;
     }
 }
 
@@ -69,18 +87,17 @@ class SentenceManager {
  * dictMapに[単語 -> 極性値]をもつ
  **/
 class EmotionDict {
-    HashMap<String, Double> dictMap;
-
-    EmotionDict() {
-        this.dictMap = new HashMap<String, Double>();
+    File file;
+    EmotionDict(String filename) {
+        this.file = new File(filename);
     }
 
-    void loadDict() {
+    HashMap<String, Double> loadDict() {
+        HashMap<String, Double> dictMap = new HashMap<String, Double>();
         FileReader fr = null;
         BufferedReader br = null;
         try {
-            File file = new File("emo_dict_jp.txt");
-            fr = new FileReader(file);
+            fr = new FileReader(this.file);
             br = new BufferedReader(fr);
 
             String line;
@@ -88,7 +105,7 @@ class EmotionDict {
                 String[] elements = line.split(":");
                 String word = elements[0];
                 double value = Double.parseDouble(elements[3]);
-                this.dictMap.put(word, value);
+                dictMap.put(word, value);
             }
         } catch(FileNotFoundException e) {
             System.out.println(e);
@@ -102,11 +119,6 @@ class EmotionDict {
                 e.printStackTrace();
             }
         }
-    }
-
-    void printDict() {
-        for (String key : this.dictMap.keySet()) {
-            System.out.println(key + " " + this.dictMap.get(key));
-        }
+        return dictMap;
     }
 }
