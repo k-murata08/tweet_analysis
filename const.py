@@ -9,7 +9,7 @@ OATH_KEY_DICT = {
 }
 
 # 分析するユーザのID
-ANALYSYS_USER_ID = 805610474377093120
+ANALYSYS_USER_ID = 740776275527237633
 
 # --------- 共通 ------------------
 REQUIRE_FOLLOWER_COUNT = 20  # フォロワーのうち、上位何人について分析するか(フォロイーの多い順)

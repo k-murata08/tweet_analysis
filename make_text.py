@@ -9,6 +9,7 @@ import twitter_analysis_func as ta
 import const as C
 import utils
 import time
+import csv
 
 
 # フォロワーのツイートをテキストファイルに吐き出す
@@ -21,7 +22,6 @@ def make_follower_text():
     followers = filter(lambda obj:obj.created_at.year <= C.VALID_USER_MAX_CREATED_AT , followers)
     followers = filter(lambda obj:obj.is_protected == False, followers)
     followers = sorted(followers, key=lambda obj: obj.friends_count, reverse=True)
-    followers = followers[0:C.REQUIRE_FOLLOWER_COUNT]
 
     texts = []
     for index, follower in enumerate(followers):
@@ -36,15 +36,19 @@ def make_follower_text():
             traceback.print_exc()
         sleep(1)
 
-    with open('tweets.txt', 'w') as f:
+    with open('tweets.csv', 'w') as f:
+        writer = csv.writer(f, lineterminator='\n')
+        header = ["tweet", "label"]
+        writer.writerow(header)
+
         for text in texts:
-            f.write(unicode(text).encode('utf-8'))
-            f.write('\n')
+            row = [unicode(text).encode('utf-8'), 1]
+            writer.writerow(row)
 
 
 if __name__ == "__main__":
     start_time = time.time()
     make_follower_text()
     elapsed_time = time.time() - start_time
-    print "Output file is [tweets.txt]"
+    print "Output file is [tweets.csv]"
     print ("elapsed_time:{0}".format(int(elapsed_time))) + "[sec]\n"
