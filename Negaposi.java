@@ -22,11 +22,10 @@ public class Negaposi {
                 }
                 if (dictMap.containsKey(word)) {
                     score += dictMap.get(word);
-                    System.out.println("sentence: " + sentence);
-                    System.out.println(word);
                 }
             }
             if (score != 0) {
+                System.out.println(sentence);
                 System.out.println("score: " + String.valueOf(score));
             }
         }
