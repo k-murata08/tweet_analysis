@@ -2,11 +2,12 @@
 
 import csv
 from natto import MeCab
-from gensim import corpora, models, matutils
+from gensim import matutils, corpora
 from sklearn.grid_search import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
+
 
 def main():
     document_words = list()
@@ -21,7 +22,7 @@ def main():
             document_words.append(parse_word_list(row[0]))
             document_labels.append(row[1])
             count += 1
-            if count == 1000:
+            if count == 2000:
                 break
 
     dictionary = corpora.Dictionary(document_words)
@@ -33,7 +34,15 @@ def main():
         dense = list(matutils.corpus2dense([bow], num_terms=len(dictionary)).T[0])
         vecs.append(dense)
 
-    data_train, data_test, label_train, label_test = train_test_split(vecs, document_labels, test_size=0.3)
+    normal_fit_predict(vecs, document_labels)
+
+
+def normal_fit_predict(future, label):
+    """
+    特徴リストとラベルリストを渡すと、
+    RandomForestの分類器を作ってテストして結果を出力
+    """
+    data_train, data_test, label_train, label_test = train_test_split(future, label, test_size=0.3)
 
     tuned_parameters = [
         {
@@ -63,6 +72,9 @@ def main():
 
 
 def parse_word_list(text):
+    """
+    文章を単語のリストに変換して返す
+    """
     words = list()
     nm = MeCab()
     with MeCab('-F%m,%f[0]') as nm:
@@ -75,6 +87,9 @@ def parse_word_list(text):
 
 
 def is_valid_speech(hinshi):
+    """
+    品詞が有効かどうかを返す
+    """
     if hinshi in ['名詞', '形容詞', '動詞', '記号']:
         return True
     return False
