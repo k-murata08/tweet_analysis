@@ -5,8 +5,8 @@ from requests_oauthlib import OAuth1Session
 import json
 import const as C
 
-# 15分間に15回回せる
 def get_followers(user_id, users_count):
+    """15分間に15回回せる"""
     url = "https://api.twitter.com/1.1/followers/list.json?"
     params = {
         "user_id": user_id,
@@ -21,10 +21,12 @@ def get_followers(user_id, users_count):
     return followers['users']
 
 
-# 15分間に15回回せる
-# フォロワーidsとページングに使うnext_cursorが返る。次のページがないときにはnext_cursorは0で返る。
-# 最初はcursorに-1を設定
 def get_follower_ids(user_id, users_count, cursor):
+    """
+    15分間に15回回せる
+    フォロワーidsとページングに使うnext_cursorが返る。次のページがないときにはnext_cursorは0で返る
+    最初はcursorに-1を設定
+    """
     url = "https://api.twitter.com/1.1/followers/ids.json?"
     params = {
         "user_id": user_id,
@@ -40,9 +42,11 @@ def get_follower_ids(user_id, users_count, cursor):
     return [follower_ids['ids'], follower_ids['next_cursor']]
 
 
-# 15分間に15回回せる
-# user_idのユーザがフォローしているユーザ
 def get_friends(user_id, users_count):
+    """
+    15分間に15回回せる
+    user_idのユーザがフォローしているユーザ
+    """
     url = "https://api.twitter.com/1.1/friends/list.json?"
     params = {
         "user_id": user_id,
@@ -57,8 +61,8 @@ def get_friends(user_id, users_count):
     return friends['users']
 
 
-# 15分間に15回回せる
 def get_friend_ids(user_id, users_count, cursor):
+    """15分間に15回回せる"""
     url = "https://api.twitter.com/1.1/friends/ids.json?"
     params = {
         "user_id": user_id,
@@ -74,8 +78,8 @@ def get_friend_ids(user_id, users_count, cursor):
     return [friend_ids['ids'], friend_ids['next_cursor']]
 
 
-# 15分間に900回回せる
 def get_user_profile(user_id):
+    """15分間に900回回せる"""
     url = "https://api.twitter.com/1.1/users/show.json?"
     params = {
         "user_id": user_id,
@@ -90,8 +94,8 @@ def get_user_profile(user_id):
     return profile
 
 
-# 15分間に900回回せる
 def get_user_profiles(user_ids):
+    """15分間に900回回せる"""
     url = "https://api.twitter.com/1.1/users/lookup.json?"
     params = {
         "user_id": user_ids,
@@ -106,8 +110,8 @@ def get_user_profiles(user_ids):
     return profiles
 
 
-# 15分間に900回回せる
 def get_user_timeline(user_id, tweets_count, include_rts):
+    """15分間に900回回せる"""
     url = "https://api.twitter.com/1.1/statuses/user_timeline.json?"
     params = {
         "user_id": user_id,
@@ -125,8 +129,8 @@ def get_user_timeline(user_id, tweets_count, include_rts):
     return timeline
 
 
-# 15分間に75回回せる(1回200件が上限)
 def get_favorite_tweets(user_id, count):
+    """15分間に75回回せる(1回200件が上限)"""
     url = "https://api.twitter.com/1.1/favorites/list.json?"
     params = {
         "user_id": user_id,
@@ -142,9 +146,11 @@ def get_favorite_tweets(user_id, count):
     return favolites
 
 
-# ツイートの詳細を取得
-# 15分間に900回回せる
 def get_tweet(tweet_id):
+    """
+    ツイートの詳細を取得
+    15分間に900回回せる
+    """
     url = "https://api.twitter.com/1.1/statuses/show.json?"
     params = {
         "id": tweet_id,
@@ -160,8 +166,8 @@ def get_tweet(tweet_id):
     return tweet
 
 
-# クエリを飛ばす時にしか使わない
 def create_oath_session(oath_key_dict):
+    """クエリを飛ばす時にしか使わない"""
     oath = OAuth1Session(
         oath_key_dict["consumer_key"],
         oath_key_dict["consumer_secret"],

@@ -12,6 +12,10 @@ import const as C
 import utils
 
 class Friend:
+    """
+    フォロイークラス
+    共通フォロー分析で使用
+    """
     def __init__(self, id, name, count, followers_count, bio, follow_rate, follow_ratio, factor):
         self.id = id
         self.name = name
@@ -24,6 +28,10 @@ class Friend:
 
 
 class User:
+    """
+    ツイッターのユーザクラス
+    一部のアカウント情報を保持しておくために使用
+    """
     def __init__(self, id, name, description, friends_count, created_at, is_protected):
         self.id = id
         self.name = name
@@ -34,6 +42,10 @@ class User:
 
 
 class Favorite:
+    """
+    ファボクラス
+    ツイートしたユーザ名も保持する
+    """
     def __init__(self, tweet_id, count, text, tweet_user_name):
         self.tweet_id = tweet_id
         self.count = count
@@ -42,6 +54,9 @@ class Favorite:
 
 
 class Morpheme:
+    """
+    形態素クラス
+    """
     def __init__(self, user_id, word, hinshi, count):
         self.user_id = user_id
         self.word = word
@@ -50,6 +65,10 @@ class Morpheme:
 
 
 class Tweet:
+    """
+    ツイートクラス
+    countはRTなどで同ツイートの出現カウントを保持する時に使用
+    """
     def __init__(self, tweet_id, text, count):
         self.tweet_id = tweet_id
         self.text = text
@@ -57,6 +76,9 @@ class Tweet:
 
 
 def create_users_from_ids(user_ids):
+    """
+    ユーザIDのリストからUserオブジェクトリストを生成
+    """
     users = []
     for index, user_id in enumerate(user_ids):
         utils.print_step_log("CreateUsersList", index, len(user_ids))
@@ -86,6 +108,10 @@ def create_users_from_ids(user_ids):
 
 
 def get_favorites_from_users(users):
+    """
+    Userオブジェクトリストから
+    そのユーザのファボツイート(200件/人)を返す
+    """
     favorite_tweet_ids = []
     for index, user in enumerate(users):
         utils.print_step_log("CreateFavoritesList", index, len(users))
@@ -107,8 +133,11 @@ def get_favorites_from_users(users):
     return favorite_tweet_ids
 
 
-# 時間が100分の1になったやつ(プロフィールのクエリだけまとめてIDを飛ばせることに気づいた)
 def improved_create_users_from_ids(user_ids):
+    """
+    create_users_from_idsの改善版
+    時間が100分の1になったやつ(プロフィールのクエリだけまとめてIDを飛ばせることに気づいた)
+    """
     users = []
     user_ids_list = utils.split_list(user_ids, 100)
     for index, ids in enumerate(user_ids_list):
@@ -138,8 +167,10 @@ def improved_create_users_from_ids(user_ids):
     return users
 
 
-# usersたちのフォロイーのID(重複可)のリストを生成
 def create_friend_ids_from_users(users):
+    """
+    UsersたちのフォロイーのID(重複可)のリストを生成
+    """
     friend_ids = []
 
     for index, user in enumerate(users):
@@ -194,13 +225,15 @@ def get_follower_ids(user_id):
     return follower_ids
 
 
-# フォロワーの中で2016年以前の登録ユーザをフォロー数の降順に並べて
-# 分析したアカウントをFriendインスタンスにしてリストで返す
 def analysys_follower_friends():
+    """
+    フォロワーの中でVALID_USER_MAX_CREATED_AT年以前の登録ユーザをフォロー数の降順に並べて
+    分析したアカウントをFriendオブジェクトにしてリストで返す
+    """
     follower_ids = get_follower_ids(user_id=C.ANALYSYS_USER_ID)
     followers = improved_create_users_from_ids(user_ids=follower_ids)
 
-    # 2016年以前のユーザで絞り込み,
+    # VALID_USER_MAX_CREATED_AT年以前のユーザで絞り込み,
     # 非公開アカウントを弾き,
     # フォロー数の多い順で並べる
     followers = filter(lambda obj:obj.created_at.year <= C.VALID_USER_MAX_CREATED_AT, followers)
@@ -294,8 +327,11 @@ def analysys_follower_friends():
     return friends
 
 
-# フォロワーのツイートを形態素解析して、単語の多い順のMorpheme(形態素)クラスで返す
 def analysys_follower_morpheme():
+    """
+    フォロワーのツイートを形態素解析して、
+    単語の多い順のMorpheme(形態素)オブジェクトで返す
+    """
     follower_ids = get_follower_ids(C.ANALYSYS_USER_ID)
     followers = improved_create_users_from_ids(user_ids=follower_ids)
 
@@ -365,6 +401,10 @@ def analysys_follower_morpheme():
 
 
 def analysys_follower_favorite():
+    """
+    フォロワーの共通ファボ分析
+    Tweetオブジェクトのリストを返す
+    """
     follower_ids = get_follower_ids(user_id=C.ANALYSYS_USER_ID)
     followers = improved_create_users_from_ids(user_ids=follower_ids)
 
@@ -409,6 +449,10 @@ def analysys_follower_favorite():
 
 
 def analysys_follower_retweet():
+    """
+    共通リツイート分析
+    Tweetオブジェクトのリストを返す
+    """
     follower_ids = get_follower_ids(user_id=C.ANALYSYS_USER_ID)
     followers = improved_create_users_from_ids(user_ids=follower_ids)
 
@@ -470,6 +514,10 @@ def analysys_follower_retweet():
 
 
 def search_follower_tweets(word):
+    """
+    wordを含むフォロワーのツイート抽出
+    Tweetオブジェクトのリストを返す
+    """
     follower_ids = get_follower_ids(user_id=C.ANALYSYS_USER_ID)
     followers = improved_create_users_from_ids(user_ids=follower_ids)
 

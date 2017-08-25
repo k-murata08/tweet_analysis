@@ -12,8 +12,11 @@ import time
 import csv
 
 
-# フォロワーのツイートをテキストファイルに吐き出す
 def make_follower_text():
+    """
+    一人当たり0~200件の
+    フォロワーのツイートをテキストファイルに吐き出す
+    """
     follower_ids = ta.get_follower_ids(C.ANALYSYS_USER_ID)
     followers = ta.improved_create_users_from_ids(user_ids=follower_ids)
 

@@ -12,17 +12,15 @@ def print_step_log(step_name, index, list_len):
     print step_name + " " + str(index+1) + "/" + str(list_len)
 
 
-# listをn個ずつの要素を持ったリストに分割する(余は余りでリストになる)
 def split_list(list, n):
+    """listをn個ずつの要素を持ったリストに分割する(余は余りでリストになる)"""
     return [list[x:x+n] for x in range(0, len(list), n)]
 
 
-# textを形態素解析して返す
-# mecabでできない表記揺れの問題をjumanだと解決できる
 def get_keitaiso_list_from_juman(text):
     """
-    @param text type->string
-    @return [[形態素1, 形態素2, ..., 形態素n], [品詞1, 品詞2, ..., 品詞n]]
+    textを形態素解析して返す
+    mecabでできない表記揺れの問題をjumanだと解決できる
     """
 
     jumanpp = Jumanpp()
@@ -50,8 +48,8 @@ def get_keitaiso_list_from_juman(text):
     return [keitaiso_list, hinshi_list]
 
 
-# ゴミワードリスト
 def get_exclusive_word_list():
+    """ゴミワードリスト"""
     with open('exclusive_word.csv', 'r') as f:
         reader = csv.reader(f)
         header = next(reader)
@@ -60,8 +58,8 @@ def get_exclusive_word_list():
     return word_list
 
 
-# 抽出する品詞に当てはまるか
 def is_valid_word_class(word_class):
+    """抽出する品詞に当てはまるか"""
     if word_class in C.VALID_WORD_CLASS:
         return True
     return False
