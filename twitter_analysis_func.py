@@ -57,8 +57,8 @@ class Morpheme:
     """
     形態素クラス
     """
-    def __init__(self, user_id, word, hinshi, count):
-        self.user_id = user_id
+    def __init__(self, username, word, hinshi, count):
+        self.username = username
         self.word = word
         self.hinshi = hinshi
         self.count = count
@@ -347,7 +347,7 @@ def analysys_follower_morpheme():
     # 全followersの指定した数のツイートを形態素解析して重複考えずに全部word_listにぶち込む。対応する品詞もhinshi_listにぶち込む
     word_list = []
     hinshi_list = []
-    user_id_list = []
+    username_list = []
 
     for index, follower in enumerate(followers):
         utils.print_step_log("CreateWordList", index, len(followers))
@@ -365,13 +365,16 @@ def analysys_follower_morpheme():
         tweet_texts = [tweet['text'] for tweet in follower_tweets]
 
         # followerのツイートを形態素解析してword_listに入れる
-        for text in tweet_texts:
-            text = text.encode('utf-8').replace('\n', '').replace('\r', '').strip()
-            keitaiso_list = utils.get_keitaiso_list_from_juman(text)
+        try:
+            for text in tweet_texts:
+                text = text.encode('utf-8').replace('\n', '').replace('\r', '').strip()
+                keitaiso_list = utils.get_keitaiso_list_from_juman(text)
 
-            word_list.extend(keitaiso_list[0])
-            hinshi_list.extend(keitaiso_list[1])
-            user_id_list.extend([follower.id] * len(keitaiso_list[0]))
+                word_list.extend(keitaiso_list[0])
+                hinshi_list.extend(keitaiso_list[1])
+                username_list.extend([follower.name] * len(keitaiso_list[0]))
+        except:
+            pass
 
         sleep(1)
 
@@ -379,8 +382,8 @@ def analysys_follower_morpheme():
     word_hinshi_list = []
 
     # 一つの単語を”単語/品詞/ユーザID”の形にする
-    for word, hinshi, user_id in zip(word_list, hinshi_list, user_id_list):
-        word_hinshi_list.append(word + "/" + hinshi + "/" + str(user_id))
+    for word, hinshi, username in zip(word_list, hinshi_list, username_list):
+        word_hinshi_list.append(word + "/" + hinshi + "/" + unicode(username).encode("utf-8"))
 
     # 単語をキーにして、単語が何回登場したかを辞書に格納
     word_counter_dict = collections.Counter(word_hinshi_list)
@@ -393,10 +396,10 @@ def analysys_follower_morpheme():
         # 形態素と品詞とuser_idを分ける
         # rsplitにすることで、もし"htt:///名詞"みたいな文字列があってもちゃんと分けられる
         splited_key = key.rsplit("/", 2)
-        morphemes.append(Morpheme(user_id=splited_key[2], word=splited_key[0], hinshi=splited_key[1], count=value))
+        morphemes.append(Morpheme(username=splited_key[2], word=splited_key[0], hinshi=splited_key[1], count=value))
 
     # ユーザ毎にまとめ、単語出現回数の多い順に並べて返す
-    morphemes = sorted(morphemes, key=lambda u: (u.user_id, u.count), reverse=True)
+    morphemes = sorted(morphemes, key=lambda u: (u.username, u.count), reverse=True)
     return morphemes
 
 

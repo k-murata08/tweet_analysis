@@ -57,11 +57,11 @@ def run_analysys_morpheme():
     # ログだと見辛いのでとりあえず今はCSVに書き出す
     with open('follower_analytics_mopheme.csv', 'w') as f:
         writer = csv.writer(f, lineterminator='\n')
-        header = ["UserID", "Word", "Class", "Count"]
+        header = ["UserName", "Word", "Class", "Count"]
         writer.writerow(header)
 
         for morpheme in morphemes:
-            row = [morpheme.user_id, morpheme.word, morpheme.hinshi, morpheme.count]
+            row = [morpheme.username, morpheme.word, morpheme.hinshi, morpheme.count]
             writer.writerow(row)
 
 
